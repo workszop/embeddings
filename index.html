@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Embedding Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+        }
+        .animal-card {
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .canvas-bg {
+            background-image:
+                linear-gradient(to right, rgba(230, 230, 230, 0.5) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(230, 230, 230, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .animal-card.dragging {
+            z-index: 1000;
+            opacity: 0.6;
+            transform: scale(1.05);
+        }
+        .animal-card.highlighted {
+            outline: 3px solid #FACC15; 
+            outline-offset: 2px;
+            transform: scale(1.1);
+            transition: transform 0.2s ease-in-out, outline 0.2s ease-in-out;
+            z-index: 900;
+        }
+        .animal-card.clickable-embedding:hover { /* Only when in inspection mode */
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        #embeddings-output::-webkit-scrollbar, #closest-animal-result-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #embeddings-output::-webkit-scrollbar-track, #closest-animal-result-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #embeddings-output::-webkit-scrollbar-thumb, #closest-animal-result-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        #embeddings-output::-webkit-scrollbar-thumb:hover, #closest-animal-result-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .rotate-text-left {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+        .rotate-text-right {
+            writing-mode: vertical-rl;
+        }
+        .sort-button.active {
+            background-color: #0369a1; 
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center p-4 md:p-8 selection:bg-sky-200">
+
+    <div class="w-full max-w-5xl">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-700">Animal Semantic Space</h1>
+            <p class="text-sm md:text-base text-slate-600 mt-2">
+                Drag all animals (pre-placed and new) to their desired positions. Then, generate embeddings.
+            </p>
+        </header>
+
+        <main class="flex flex-col lg:flex-row gap-6 md:gap-8">
+            <section class="lg:w-2/3 bg-white p-4 sm:p-6 rounded-xl shadow-lg relative">
+                <h2 class="text-xl font-semibold mb-4 text-sky-600">Canvas</h2>
+                <div id="axis-label-y-top" class="hidden absolute top-1 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-slate-500 font-medium z-[5]">Size: Large</div>
+                <div id="axis-label-y-bottom" class="hidden absolute bottom-1 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-slate-500 font-medium z-[5]">Size: Small</div>
+                <div id="axis-label-x-left" class="hidden absolute left-1 top-1/2 -translate-y-1/2 z-[5]">
+                    <div class="text-xs sm:text-sm text-slate-500 font-medium rotate-text-left whitespace-nowrap">Environment: Wild</div>
+                </div>
+                <div id="axis-label-x-right" class="hidden absolute right-1 top-1/2 -translate-y-1/2 z-[5]">
+                     <div class="text-xs sm:text-sm text-slate-500 font-medium rotate-text-right whitespace-nowrap">Environment: Domestic</div>
+                </div>
+                <div id="canvas" class="relative w-full h-[400px] md:h-[500px] bg-sky-50 canvas-bg border-2 border-sky-200 rounded-lg overflow-hidden">
+                </div>
+            </section>
+
+            <aside class="lg:w-1/3 flex flex-col gap-6 md:gap-8">
+                <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 text-sky-600">New Animals</h2>
+                    <div id="new-animals-shelf" class="flex flex-wrap gap-3 justify-center min-h-[80px] p-2 border border-dashed border-slate-300 rounded-md">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 text-center">Drag these onto the canvas.</p>
+                </section>
+                <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold mb-3 text-sky-600">Actions</h2>
+                    <button id="generate-embeddings-btn"
+                            class="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all duration-200 ease-in-out disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75"
+                            disabled>
+                        Generate Embeddings
+                    </button>
+                     <p id="status-message" class="text-xs text-slate-500 mt-2 text-center h-4"></p>
+                </section>
+            </aside>
+        </main>
+
+        <footer class="mt-6 md:mt-8 w-full flex flex-col gap-6 md:gap-8">
+            <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                    <h2 class="text-xl font-semibold text-sky-600 mb-2 sm:mb-0">Generated Embeddings</h2>
+                    <div id="sort-controls" class="flex gap-2">
+                        <button data-sort="name" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Name</button>
+                        <button data-sort="x" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by X</button>
+                        <button data-sort="y" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Y</button>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-600 mb-3">
+                    Each animal's position on the canvas is encoded as a 2D vector `[x, y]`.
+                </p>
+                <div id="embeddings-output" class="space-y-2 max-h-[200px] md:max-h-[250px] overflow-y-auto p-1">
+                </div>
+            </section>
+
+            <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-semibold mb-3 text-sky-600">Inspect & Find by Embedding</h2>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <label for="user-embedding-x" class="block text-sm font-medium text-slate-700">X-coordinate (0 to <span id="canvas-width-display-x" class="font-semibold">...</span>):</label>
+                        <input type="number" id="user-embedding-x" name="user-embedding-x" placeholder="e.g., 150" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2">
+                    </div>
+                    <div class="flex-1">
+                        <label for="user-embedding-y" class="block text-sm font-medium text-slate-700">Y-coordinate (0 to <span id="canvas-height-display-y" class="font-semibold">...</span>):</label>
+                        <input type="number" id="user-embedding-y" name="user-embedding-y" placeholder="e.g., 300" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2">
+                    </div>
+                </div>
+                <button id="find-closest-btn"
+                        class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md transition-all duration-200 ease-in-out disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75"
+                        disabled>
+                    Find Closest Animal to Input
+                </button>
+                <div id="closest-animal-result-container" class="mt-4 text-sm text-slate-700 min-h-[40px] p-3 bg-slate-50 rounded-md border border-slate-200 max-h-[100px] overflow-y-auto">
+                    <p id="closest-animal-result">Embeddings not generated. Or, click an animal on canvas after generation.</p>
+                </div>
+            </section>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('canvas');
+            const newAnimalsShelf = document.getElementById('new-animals-shelf');
+            const generateEmbeddingsBtn = document.getElementById('generate-embeddings-btn');
+            const embeddingsOutput = document.getElementById('embeddings-output');
+            const statusMessage = document.getElementById('status-message');
+            const sortControlsContainer = document.getElementById('sort-controls');
+
+            const axisLabelYTop = document.getElementById('axis-label-y-top');
+            const axisLabelYBottom = document.getElementById('axis-label-y-bottom');
+            const axisLabelXLeft = document.getElementById('axis-label-x-left');
+            const axisLabelXRight = document.getElementById('axis-label-x-right');
+
+            const findClosestBtn = document.getElementById('find-closest-btn');
+            const userEmbeddingXInput = document.getElementById('user-embedding-x');
+            const userEmbeddingYInput = document.getElementById('user-embedding-y');
+            const closestAnimalResult = document.getElementById('closest-animal-result');
+            const canvasWidthDisplayX = document.getElementById('canvas-width-display-x'); 
+            const canvasHeightDisplayY = document.getElementById('canvas-height-display-y'); 
+
+            const prePlacedAnimalsData = [
+                { name: 'Elephant', xPc: 10, yPc: 10, color: 'bg-slate-500', textColor: 'text-white' },
+                { name: 'Lion', xPc: 15, yPc: 25, color: 'bg-orange-500', textColor: 'text-white' },
+                { name: 'Wolf', xPc: 20, yPc: 45, color: 'bg-gray-600', textColor: 'text-white' },
+                { name: 'Fox', xPc: 25, yPc: 65, color: 'bg-amber-600', textColor: 'text-white' },
+                { name: 'Squirrel', xPc: 18, yPc: 85, color: 'bg-orange-400', textColor: 'text-black' },
+                { name: 'Horse', xPc: 45, yPc: 18, color: 'bg-yellow-600', textColor: 'text-white' },
+                { name: 'Cow', xPc: 50, yPc: 22, color: 'bg-neutral-400', textColor: 'text-black' },
+                { name: 'Pig', xPc: 55, yPc: 55, color: 'bg-pink-400', textColor: 'text-black' },
+                { name: 'Sheep', xPc: 60, yPc: 60, color: 'bg-stone-300', textColor: 'text-black' },
+                { name: 'Chicken', xPc: 52, yPc: 80, color: 'bg-red-400', textColor: 'text-black' },
+                { name: 'Carp', xPc: 58, yPc: 70, color: 'bg-sky-400', textColor: 'text-black' }, // New Farm Animal
+                { name: 'Dog (Sml)', xPc: 85, yPc: 70, color: 'bg-green-500', textColor: 'text-white' },
+                { name: 'Cat', xPc: 90, yPc: 75, color: 'bg-teal-500', textColor: 'text-white' },
+                { name: 'Parrot', xPc: 92, yPc: 85, color: 'bg-red-500', textColor: 'text-white' }, // New Pet
+                { name: 'Hamster', xPc: 88, yPc: 90, color: 'bg-yellow-400', textColor: 'text-black' },
+            ];
+            const newAnimalsToPlaceData = [
+                { id: 'bear', name: 'Bear', color: 'bg-stone-700', textColor: 'text-white' },
+                { id: 'rabbit', name: 'Rabbit', color: 'bg-slate-400', textColor: 'text-black' },
+                { id: 'goldfish', name: 'Goldfish', color: 'bg-orange-400', textColor: 'text-black' },
+                { id: 'whale', name: 'Whale', color: 'bg-blue-600', textColor: 'text-white' }
+            ];
+
+            let draggedElement = null;
+            let offsetX, offsetY;
+            let placedNewAnimalsCount = 0;
+            let currentEmbeddingsData = []; 
+            let activeSortKey = 'name'; 
+
+            function createAnimalElement(animal, isInitiallyOnShelf = false) {
+                const div = document.createElement('div');
+                div.textContent = animal.name;
+                div.dataset.name = animal.name;
+                div.dataset.bgColor = animal.color;
+                div.dataset.textColor = animal.textColor;
+                div.className = `animal-card ${animal.color} ${animal.textColor} px-2.5 py-1.5 md:px-3 md:py-2 rounded-md text-xs sm:text-sm font-semibold shadow-sm transition-all duration-150 ease-in-out`;
+
+                if (isInitiallyOnShelf) {
+                    div.id = animal.id; 
+                    div.draggable = true;
+                    div.style.cursor = 'grab';
+                } else { 
+                    const canvasWidth = canvas.clientWidth;
+                    const canvasHeight = canvas.clientHeight;
+                    div.style.position = 'absolute';
+                    div.style.left = `${(animal.xPc / 100) * canvasWidth}px`;
+                    div.style.top = `${(animal.yPc / 100) * canvasHeight}px`;
+                    div.draggable = true; 
+                    div.style.cursor = 'grab';
+                    requestAnimationFrame(() => {
+                         const elWidth = div.offsetWidth;
+                         const elHeight = div.offsetHeight;
+                         div.style.left = `${(animal.xPc / 100) * canvasWidth - elWidth / 2}px`;
+                         div.style.top = `${(animal.yPc / 100) * canvasHeight - elHeight / 2}px`;
+                    });
+                }
+                
+                div.addEventListener('dragstart', (e) => {
+                    draggedElement = e.target;
+                    const rect = draggedElement.getBoundingClientRect();
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', draggedElement.dataset.name);
+                    setTimeout(() => draggedElement.classList.add('dragging'), 0);
+                });
+
+                div.addEventListener('dragend', () => {
+                    if (draggedElement) draggedElement.classList.remove('dragging');
+                    draggedElement = null;
+                });
+                return div;
+            }
+            
+            function makeAnimalClickableForEmbedding(animalElement) {
+                animalElement.classList.add('clickable-embedding');
+                animalElement.style.cursor = 'pointer'; 
+                animalElement.draggable = false; 
+                animalElement.addEventListener('click', handleAnimalCardClick);
+            }
+
+            function makeAnimalNotClickableForEmbedding(animalElement) {
+                animalElement.classList.remove('clickable-embedding');
+                animalElement.classList.remove('highlighted');
+                animalElement.style.cursor = 'grab'; 
+                animalElement.draggable = true; 
+                animalElement.removeEventListener('click', handleAnimalCardClick);
+            }
+
+            function handleAnimalCardClick(event) {
+                const clickedAnimalElement = event.currentTarget;
+                const animalName = clickedAnimalElement.dataset.name;
+                const animalData = currentEmbeddingsData.find(a => a.name === animalName);
+
+                if (animalData) {
+                    closestAnimalResult.innerHTML = `Clicked: <strong class="${animalData.bgColor} ${animalData.textColor} px-1 rounded">${animalData.name}</strong> at [${animalData.vector[0]}, ${animalData.vector[1]}]`;
+                    highlightAnimalElement(animalData.element);
+                    userEmbeddingXInput.value = ''; 
+                    userEmbeddingYInput.value = '';
+                }
+            }
+
+            function updateButtonAndStatus() {
+                const remaining = newAnimalsToPlaceData.length - placedNewAnimalsCount;
+                if (remaining === 0) {
+                    generateEmbeddingsBtn.disabled = false;
+                    statusMessage.textContent = 'All new animals placed! Ready to generate.';
+                } else {
+                    generateEmbeddingsBtn.disabled = true;
+                    statusMessage.textContent = `Place ${remaining} more new animal${remaining > 1 ? 's' : ''}.`;
+                }
+            }
+
+            function hideAxes() {
+                [axisLabelYTop, axisLabelYBottom, axisLabelXLeft, axisLabelXRight].forEach(el => el.classList.add('hidden'));
+            }
+
+            function showAxes() {
+                [axisLabelYTop, axisLabelYBottom, axisLabelXLeft, axisLabelXRight].forEach(el => el.classList.remove('hidden'));
+            }
+            
+            function removeAllHighlights() {
+                document.querySelectorAll('.animal-card.highlighted').forEach(el => el.classList.remove('highlighted'));
+            }
+
+            function highlightAnimalElement(animalElement) {
+                removeAllHighlights();
+                if (animalElement) {
+                    animalElement.classList.add('highlighted');
+                }
+            }
+            
+            function updateSortButtonActiveState() {
+                document.querySelectorAll('#sort-controls .sort-button').forEach(button => {
+                    if (button.dataset.sort === activeSortKey) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                });
+            }
+
+            function displaySortedEmbeddings() {
+                if (activeSortKey === 'name') {
+                    currentEmbeddingsData.sort((a, b) => a.name.localeCompare(b.name));
+                } else if (activeSortKey === 'x') {
+                    currentEmbeddingsData.sort((a, b) => a.vector[0] - b.vector[0]);
+                } else if (activeSortKey === 'y') {
+                    currentEmbeddingsData.sort((a, b) => a.vector[1] - b.vector[1]);
+                }
+
+                embeddingsOutput.innerHTML = ''; 
+                currentEmbeddingsData.forEach(data => {
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = `flex items-center justify-between p-2.5 rounded-lg shadow-sm ${data.bgColor} ${data.textColor}`;
+                    entryDiv.innerHTML = `<span class="font-semibold text-sm">${data.name}:</span><span class="font-mono text-xs sm:text-sm">[${data.vector[0]}, ${data.vector[1]}]</span>`;
+                    embeddingsOutput.appendChild(entryDiv);
+                });
+                updateSortButtonActiveState();
+            }
+
+            function initializeAnimals() {
+                canvas.innerHTML = '';
+                newAnimalsShelf.innerHTML = '';
+                embeddingsOutput.innerHTML = '';
+                placedNewAnimalsCount = 0;
+                currentEmbeddingsData = [];
+                activeSortKey = 'name'; 
+                hideAxes();
+                removeAllHighlights();
+
+                prePlacedAnimalsData.forEach(animalData => canvas.appendChild(createAnimalElement(animalData, false)));
+                newAnimalsToPlaceData.forEach(animalData => newAnimalsShelf.appendChild(createAnimalElement(animalData, true)));
+                
+                updateButtonAndStatus();
+                generateEmbeddingsBtn.textContent = 'Generate Embeddings';
+                
+                findClosestBtn.disabled = true;
+                userEmbeddingXInput.value = '';
+                userEmbeddingYInput.value = '';
+                closestAnimalResult.textContent = 'Embeddings not generated. Or, click an animal on canvas after generation.';
+                canvasWidthDisplayX.textContent = '...';
+                canvasHeightDisplayY.textContent = '...';
+                
+                document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = true);
+                updateSortButtonActiveState(); 
+
+                canvas.querySelectorAll('.animal-card').forEach(el => {
+                     makeAnimalNotClickableForEmbedding(el); 
+                     el.draggable = true; 
+                     el.style.cursor = 'grab';
+                });
+            }
+
+            canvas.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+            canvas.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!draggedElement) return;
+
+                const canvasRect = canvas.getBoundingClientRect();
+                let x = e.clientX - canvasRect.left - offsetX;
+                let y = e.clientY - canvasRect.top - offsetY;
+                const elWidth = draggedElement.offsetWidth;
+                const elHeight = draggedElement.offsetHeight;
+                x = Math.max(0, Math.min(x, canvas.clientWidth - elWidth));
+                y = Math.max(0, Math.min(y, canvas.clientHeight - elHeight));
+
+                const fromShelf = newAnimalsShelf.contains(draggedElement);
+
+                draggedElement.style.position = 'absolute';
+                draggedElement.style.left = `${x}px`;
+                draggedElement.style.top = `${y}px`;
+                
+                if (fromShelf) {
+                    canvas.appendChild(draggedElement); 
+                    if (!draggedElement.dataset.placedOnCanvas) {
+                        placedNewAnimalsCount++;
+                        draggedElement.dataset.placedOnCanvas = 'true';
+                    }
+                }
+                draggedElement.style.cursor = 'grab'; 
+                updateButtonAndStatus();
+            });
+
+            generateEmbeddingsBtn.addEventListener('click', () => {
+                currentEmbeddingsData = [];
+                const allAnimalsOnCanvas = canvas.querySelectorAll('.animal-card');
+
+                allAnimalsOnCanvas.forEach(animalEl => {
+                    const name = animalEl.dataset.name;
+                    const xPos = Math.round(parseFloat(animalEl.style.left || 0));
+                    const yPos = Math.round(parseFloat(animalEl.style.top || 0));
+                    const bgColor = animalEl.dataset.bgColor || 'bg-gray-200';
+                    const textColor = animalEl.dataset.textColor || 'text-black';
+                    currentEmbeddingsData.push({ name, vector: [xPos, yPos], bgColor, textColor, element: animalEl });
+                    
+                    makeAnimalClickableForEmbedding(animalEl);
+                });
+                
+                activeSortKey = 'name'; 
+                displaySortedEmbeddings(); 
+                
+                showAxes();
+                generateEmbeddingsBtn.textContent = 'Embeddings Generated!';
+                generateEmbeddingsBtn.disabled = true;
+                statusMessage.textContent = 'Embeddings shown. Axes revealed. Click animals or sort!';
+
+                findClosestBtn.disabled = false;
+                canvasWidthDisplayX.textContent = canvas.clientWidth; 
+                canvasHeightDisplayY.textContent = canvas.clientHeight;
+                closestAnimalResult.textContent = 'Click an animal on canvas or enter coordinates to find closest.';
+                document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = false);
+            });
+            
+            sortControlsContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('sort-button')) {
+                    const sortKey = e.target.dataset.sort;
+                    if (sortKey && currentEmbeddingsData.length > 0) {
+                        activeSortKey = sortKey;
+                        displaySortedEmbeddings();
+                    }
+                }
+            });
+
+            findClosestBtn.addEventListener('click', () => {
+                const inputX = parseFloat(userEmbeddingXInput.value);
+                const inputY = parseFloat(userEmbeddingYInput.value);
+
+                if (isNaN(inputX) || isNaN(inputY)) {
+                    closestAnimalResult.textContent = 'Please enter valid numerical X and Y coordinates.';
+                    removeAllHighlights();
+                    return;
+                }
+                if (currentEmbeddingsData.length === 0) {
+                    closestAnimalResult.textContent = 'No embeddings generated. Please generate first.';
+                    removeAllHighlights();
+                    return;
+                }
+
+                let closestAnimal = null;
+                let minDistance = Infinity;
+                currentEmbeddingsData.forEach(animalData => {
+                    const dist = Math.sqrt(Math.pow(animalData.vector[0] - inputX, 2) + Math.pow(animalData.vector[1] - inputY, 2));
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestAnimal = animalData;
+                    }
+                });
+
+                if (closestAnimal) {
+                    closestAnimalResult.innerHTML = `Closest to input: <strong class="${closestAnimal.bgColor} ${closestAnimal.textColor} px-1 rounded">${closestAnimal.name}</strong> at [${closestAnimal.vector[0]}, ${closestAnimal.vector[1]}] (Distance: ${minDistance.toFixed(2)})`;
+                    highlightAnimalElement(closestAnimal.element);
+                } else {
+                    closestAnimalResult.textContent = 'Could not find any animals to compare.';
+                    removeAllHighlights();
+                }
+            });
+
+            initializeAnimals();
+
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    const allCanvasAnimals = canvas.querySelectorAll('.animal-card');
+                    const canvasWidth = canvas.clientWidth;
+                    const canvasHeight = canvas.clientHeight;
+
+                    allCanvasAnimals.forEach(el => {
+                        const animalData = prePlacedAnimalsData.find(a => a.name === el.dataset.name);
+                        if (animalData) { // It's a pre-placed animal, re-calculate from %
+                             const elWidth = el.offsetWidth;
+                             const elHeight = el.offsetHeight;
+                             el.style.left = `${(animalData.xPc / 100) * canvasWidth - elWidth / 2}px`;
+                             el.style.top = `${(animalData.yPc / 100) * canvasHeight - elHeight / 2}px`;
+                        } else { // It's a user-placed (from shelf) or moved pre-placed animal
+                            // For simplicity, keep their pixel position but clamp to new boundaries
+                            let currentX = parseFloat(el.style.left);
+                            let currentY = parseFloat(el.style.top);
+                            const elWidth = el.offsetWidth;
+                            const elHeight = el.offsetHeight;
+                            el.style.left = `${Math.max(0, Math.min(currentX, canvasWidth - elWidth))}px`;
+                            el.style.top = `${Math.max(0, Math.min(currentY, canvasHeight - elHeight))}px`;
+                        }
+                    });
+
+                    if (!axisLabelYTop.classList.contains('hidden')) showAxes();
+                    if (!findClosestBtn.disabled) {
+                        canvasWidthDisplayX.textContent = canvas.clientWidth;
+                        canvasHeightDisplayY.textContent = canvas.clientHeight;
+                    }
+                }, 250);
+            });
+        });
+    </script>
+</body>
+</html>
