@@ -40,18 +40,18 @@
             transform: scale(1.05);
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
-        #embeddings-output::-webkit-scrollbar, #closest-animal-result-container::-webkit-scrollbar {
+        #embeddings-output::-webkit-scrollbar {
             width: 8px;
         }
-        #embeddings-output::-webkit-scrollbar-track, #closest-animal-result-container::-webkit-scrollbar-track {
+        #embeddings-output::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
-        #embeddings-output::-webkit-scrollbar-thumb, #closest-animal-result-container::-webkit-scrollbar-thumb {
+        #embeddings-output::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 10px;
         }
-        #embeddings-output::-webkit-scrollbar-thumb:hover, #closest-animal-result-container::-webkit-scrollbar-thumb:hover {
+        #embeddings-output::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
         .rotate-text-left {
@@ -127,28 +127,6 @@
                 <div id="embeddings-output" class="space-y-2 max-h-[200px] md:max-h-[250px] overflow-y-auto p-1">
                 </div>
             </section>
-
-            <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold mb-3 text-sky-600">Inspect & Find by Embedding</h2>
-                <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div class="flex-1">
-                        <label for="user-embedding-x" class="block text-sm font-medium text-slate-700">X-coordinate (0 to <span id="canvas-width-display-x" class="font-semibold">...</span>):</label>
-                        <input type="number" id="user-embedding-x" name="user-embedding-x" placeholder="e.g., 150" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2">
-                    </div>
-                    <div class="flex-1">
-                        <label for="user-embedding-y" class="block text-sm font-medium text-slate-700">Y-coordinate (0 to <span id="canvas-height-display-y" class="font-semibold">...</span>):</label>
-                        <input type="number" id="user-embedding-y" name="user-embedding-y" placeholder="e.g., 300" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2">
-                    </div>
-                </div>
-                <button id="find-closest-btn"
-                        class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md transition-all duration-200 ease-in-out disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75"
-                        disabled>
-                    Find Closest Animal to Input
-                </button>
-                <div id="closest-animal-result-container" class="mt-4 text-sm text-slate-700 min-h-[40px] p-3 bg-slate-50 rounded-md border border-slate-200 max-h-[100px] overflow-y-auto">
-                    <p id="closest-animal-result">Embeddings not generated. Or, click an animal on canvas after generation.</p>
-                </div>
-            </section>
         </footer>
     </div>
 
@@ -166,13 +144,6 @@
             const axisLabelXLeft = document.getElementById('axis-label-x-left');
             const axisLabelXRight = document.getElementById('axis-label-x-right');
 
-            const findClosestBtn = document.getElementById('find-closest-btn');
-            const userEmbeddingXInput = document.getElementById('user-embedding-x');
-            const userEmbeddingYInput = document.getElementById('user-embedding-y');
-            const closestAnimalResult = document.getElementById('closest-animal-result');
-            const canvasWidthDisplayX = document.getElementById('canvas-width-display-x'); 
-            const canvasHeightDisplayY = document.getElementById('canvas-height-display-y'); 
-
             const prePlacedAnimalsData = [
                 { name: 'Elephant', xPc: 10, yPc: 10, color: 'bg-slate-500', textColor: 'text-white' },
                 { name: 'Lion', xPc: 15, yPc: 25, color: 'bg-orange-500', textColor: 'text-white' },
@@ -184,10 +155,10 @@
                 { name: 'Pig', xPc: 55, yPc: 55, color: 'bg-pink-400', textColor: 'text-black' },
                 { name: 'Sheep', xPc: 60, yPc: 60, color: 'bg-stone-300', textColor: 'text-black' },
                 { name: 'Chicken', xPc: 52, yPc: 80, color: 'bg-red-400', textColor: 'text-black' },
-                { name: 'Carp', xPc: 58, yPc: 70, color: 'bg-sky-400', textColor: 'text-black' }, // New Farm Animal
+                { name: 'Carp', xPc: 58, yPc: 70, color: 'bg-sky-400', textColor: 'text-black' },
                 { name: 'Dog (Sml)', xPc: 85, yPc: 70, color: 'bg-green-500', textColor: 'text-white' },
                 { name: 'Cat', xPc: 90, yPc: 75, color: 'bg-teal-500', textColor: 'text-white' },
-                { name: 'Parrot', xPc: 92, yPc: 85, color: 'bg-red-500', textColor: 'text-white' }, // New Pet
+                { name: 'Parrot', xPc: 92, yPc: 85, color: 'bg-red-500', textColor: 'text-white' },
                 { name: 'Hamster', xPc: 88, yPc: 90, color: 'bg-yellow-400', textColor: 'text-black' },
             ];
             const newAnimalsToPlaceData = [
@@ -269,10 +240,7 @@
                 const animalData = currentEmbeddingsData.find(a => a.name === animalName);
 
                 if (animalData) {
-                    closestAnimalResult.innerHTML = `Clicked: <strong class="${animalData.bgColor} ${animalData.textColor} px-1 rounded">${animalData.name}</strong> at [${animalData.vector[0]}, ${animalData.vector[1]}]`;
                     highlightAnimalElement(animalData.element);
-                    userEmbeddingXInput.value = ''; 
-                    userEmbeddingYInput.value = '';
                 }
             }
 
@@ -351,13 +319,6 @@
                 updateButtonAndStatus();
                 generateEmbeddingsBtn.textContent = 'Generate Embeddings';
                 
-                findClosestBtn.disabled = true;
-                userEmbeddingXInput.value = '';
-                userEmbeddingYInput.value = '';
-                closestAnimalResult.textContent = 'Embeddings not generated. Or, click an animal on canvas after generation.';
-                canvasWidthDisplayX.textContent = '...';
-                canvasHeightDisplayY.textContent = '...';
-                
                 document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = true);
                 updateSortButtonActiveState(); 
 
@@ -421,10 +382,6 @@
                 generateEmbeddingsBtn.disabled = true;
                 statusMessage.textContent = 'Embeddings shown. Axes revealed. Click animals or sort!';
 
-                findClosestBtn.disabled = false;
-                canvasWidthDisplayX.textContent = canvas.clientWidth; 
-                canvasHeightDisplayY.textContent = canvas.clientHeight;
-                closestAnimalResult.textContent = 'Click an animal on canvas or enter coordinates to find closest.';
                 document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = false);
             });
             
@@ -435,40 +392,6 @@
                         activeSortKey = sortKey;
                         displaySortedEmbeddings();
                     }
-                }
-            });
-
-            findClosestBtn.addEventListener('click', () => {
-                const inputX = parseFloat(userEmbeddingXInput.value);
-                const inputY = parseFloat(userEmbeddingYInput.value);
-
-                if (isNaN(inputX) || isNaN(inputY)) {
-                    closestAnimalResult.textContent = 'Please enter valid numerical X and Y coordinates.';
-                    removeAllHighlights();
-                    return;
-                }
-                if (currentEmbeddingsData.length === 0) {
-                    closestAnimalResult.textContent = 'No embeddings generated. Please generate first.';
-                    removeAllHighlights();
-                    return;
-                }
-
-                let closestAnimal = null;
-                let minDistance = Infinity;
-                currentEmbeddingsData.forEach(animalData => {
-                    const dist = Math.sqrt(Math.pow(animalData.vector[0] - inputX, 2) + Math.pow(animalData.vector[1] - inputY, 2));
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        closestAnimal = animalData;
-                    }
-                });
-
-                if (closestAnimal) {
-                    closestAnimalResult.innerHTML = `Closest to input: <strong class="${closestAnimal.bgColor} ${closestAnimal.textColor} px-1 rounded">${closestAnimal.name}</strong> at [${closestAnimal.vector[0]}, ${closestAnimal.vector[1]}] (Distance: ${minDistance.toFixed(2)})`;
-                    highlightAnimalElement(closestAnimal.element);
-                } else {
-                    closestAnimalResult.textContent = 'Could not find any animals to compare.';
-                    removeAllHighlights();
                 }
             });
 
@@ -484,13 +407,12 @@
 
                     allCanvasAnimals.forEach(el => {
                         const animalData = prePlacedAnimalsData.find(a => a.name === el.dataset.name);
-                        if (animalData) { // It's a pre-placed animal, re-calculate from %
+                        if (animalData) {
                              const elWidth = el.offsetWidth;
                              const elHeight = el.offsetHeight;
                              el.style.left = `${(animalData.xPc / 100) * canvasWidth - elWidth / 2}px`;
                              el.style.top = `${(animalData.yPc / 100) * canvasHeight - elHeight / 2}px`;
-                        } else { // It's a user-placed (from shelf) or moved pre-placed animal
-                            // For simplicity, keep their pixel position but clamp to new boundaries
+                        } else {
                             let currentX = parseFloat(el.style.left);
                             let currentY = parseFloat(el.style.top);
                             const elWidth = el.offsetWidth;
@@ -501,10 +423,6 @@
                     });
 
                     if (!axisLabelYTop.classList.contains('hidden')) showAxes();
-                    if (!findClosestBtn.disabled) {
-                        canvasWidthDisplayX.textContent = canvas.clientWidth;
-                        canvasHeightDisplayY.textContent = canvas.clientHeight;
-                    }
                 }, 250);
             });
         });
