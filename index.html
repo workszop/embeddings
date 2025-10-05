@@ -62,8 +62,36 @@
             writing-mode: vertical-rl;
         }
         .sort-button.active {
-            background-color: #0369a1; 
+            background-color: #0369a1;
             color: white;
+        }
+        .axis-tick {
+            position: absolute;
+            background-color: rgba(100, 116, 139, 0.4);
+        }
+        .axis-tick-x {
+            width: 1px;
+            height: 8px;
+            bottom: 0;
+        }
+        .axis-tick-y {
+            width: 8px;
+            height: 1px;
+            left: 0;
+        }
+        .tick-label {
+            position: absolute;
+            font-size: 9px;
+            color: rgba(71, 85, 105, 0.7);
+            font-weight: 500;
+        }
+        .tick-label-x {
+            bottom: -16px;
+            transform: translateX(-50%);
+        }
+        .tick-label-y {
+            left: -20px;
+            transform: translateY(-50%);
         }
     </style>
 </head>
@@ -183,9 +211,12 @@
                 div.className = `animal-card ${animal.color} ${animal.textColor} px-2.5 py-1.5 md:px-3 md:py-2 rounded-md text-xs sm:text-sm font-semibold shadow-sm transition-all duration-150 ease-in-out`;
 
                 if (isInitiallyOnShelf) {
-                    div.id = animal.id; 
+                    div.id = animal.id;
                     div.draggable = true;
                     div.style.cursor = 'grab';
+                    div.style.minWidth = '80px';
+                    div.style.width = '80px';
+                    div.style.textAlign = 'center';
                 } else { 
                     const canvasWidth = canvas.clientWidth;
                     const canvasHeight = canvas.clientHeight;
@@ -261,6 +292,43 @@
 
             function showAxes() {
                 [axisLabelYTop, axisLabelYBottom, axisLabelXLeft, axisLabelXRight].forEach(el => el.classList.remove('hidden'));
+                addAxisTicks();
+            }
+
+            function addAxisTicks() {
+                // Remove existing ticks and labels if any
+                canvas.querySelectorAll('.axis-tick, .tick-label').forEach(el => el.remove());
+
+                const canvasWidth = canvas.clientWidth;
+                const canvasHeight = canvas.clientHeight;
+
+                // Add X-axis ticks (horizontal, at bottom) with labels
+                for (let i = 0; i <= 10; i++) {
+                    const tick = document.createElement('div');
+                    tick.className = 'axis-tick axis-tick-x';
+                    tick.style.left = `${(i / 10) * canvasWidth}px`;
+                    canvas.appendChild(tick);
+
+                    const label = document.createElement('div');
+                    label.className = 'tick-label tick-label-x';
+                    label.textContent = i * 10;
+                    label.style.left = `${(i / 10) * canvasWidth}px`;
+                    canvas.appendChild(label);
+                }
+
+                // Add Y-axis ticks (vertical, at left) with labels
+                for (let i = 0; i <= 10; i++) {
+                    const tick = document.createElement('div');
+                    tick.className = 'axis-tick axis-tick-y';
+                    tick.style.top = `${(i / 10) * canvasHeight}px`;
+                    canvas.appendChild(tick);
+
+                    const label = document.createElement('div');
+                    label.className = 'tick-label tick-label-y';
+                    label.textContent = i * 10;
+                    label.style.top = `${(i / 10) * canvasHeight}px`;
+                    canvas.appendChild(label);
+                }
             }
             
             function removeAllHighlights() {
@@ -349,11 +417,15 @@
                 draggedElement.style.top = `${y}px`;
                 
                 if (fromShelf) {
-                    canvas.appendChild(draggedElement); 
+                    canvas.appendChild(draggedElement);
                     if (!draggedElement.dataset.placedOnCanvas) {
                         placedNewAnimalsCount++;
                         draggedElement.dataset.placedOnCanvas = 'true';
                     }
+                    // Maintain fixed width when moved to canvas
+                    draggedElement.style.minWidth = '80px';
+                    draggedElement.style.width = '80px';
+                    draggedElement.style.textAlign = 'center';
                 }
                 draggedElement.style.cursor = 'grab'; 
                 updateButtonAndStatus();
@@ -362,21 +434,34 @@
             generateEmbeddingsBtn.addEventListener('click', () => {
                 currentEmbeddingsData = [];
                 const allAnimalsOnCanvas = canvas.querySelectorAll('.animal-card');
+                const canvasWidth = canvas.clientWidth;
+                const canvasHeight = canvas.clientHeight;
 
                 allAnimalsOnCanvas.forEach(animalEl => {
                     const name = animalEl.dataset.name;
-                    const xPos = Math.round(parseFloat(animalEl.style.left || 0));
-                    const yPos = Math.round(parseFloat(animalEl.style.top || 0));
+                    // Get center position of the element
+                    const leftPx = parseFloat(animalEl.style.left || 0);
+                    const topPx = parseFloat(animalEl.style.top || 0);
+                    const elWidth = animalEl.offsetWidth;
+                    const elHeight = animalEl.offsetHeight;
+                    const centerX = leftPx + elWidth / 2;
+                    const centerY = topPx + elHeight / 2;
+
+                    // Normalize to 0-100 range as integers
+                    // X grows left to right, Y grows bottom to top (traditional coordinates)
+                    const x = Math.round((centerX / canvasWidth) * 100);
+                    const y = Math.round((1 - centerY / canvasHeight) * 100);
+
                     const bgColor = animalEl.dataset.bgColor || 'bg-gray-200';
                     const textColor = animalEl.dataset.textColor || 'text-black';
-                    currentEmbeddingsData.push({ name, vector: [xPos, yPos], bgColor, textColor, element: animalEl });
-                    
+                    currentEmbeddingsData.push({ name, vector: [x, y], bgColor, textColor, element: animalEl });
+
                     makeAnimalClickableForEmbedding(animalEl);
                 });
-                
-                activeSortKey = 'name'; 
-                displaySortedEmbeddings(); 
-                
+
+                activeSortKey = 'name';
+                displaySortedEmbeddings();
+
                 showAxes();
                 generateEmbeddingsBtn.textContent = 'Embeddings Generated!';
                 generateEmbeddingsBtn.disabled = true;
@@ -422,7 +507,9 @@
                         }
                     });
 
-                    if (!axisLabelYTop.classList.contains('hidden')) showAxes();
+                    if (!axisLabelYTop.classList.contains('hidden')) {
+                        addAxisTicks();
+                    }
                 }, 250);
             });
         });
