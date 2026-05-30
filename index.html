@@ -12,12 +12,21 @@
             overscroll-behavior: none;
         }
         .animal-card {
+            position: relative;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
         }
+        /* 3rd dimension (habitat) shown as a colored ring around each card. */
+        .medium-water { box-shadow: 0 0 0 3px #0EA5E9, 0 1px 2px rgba(0,0,0,0.12); }
+        .medium-land  { box-shadow: 0 0 0 3px #16A34A, 0 1px 2px rgba(0,0,0,0.12); }
+        .medium-air   { box-shadow: 0 0 0 3px #8B5CF6, 0 1px 2px rgba(0,0,0,0.12); }
+        .medium-icon { font-size: 0.85em; }
+        .medium-btn.active-water { background-color: #0EA5E9; color: #fff; }
+        .medium-btn.active-land  { background-color: #16A34A; color: #fff; }
+        .medium-btn.active-air   { background-color: #8B5CF6; color: #fff; }
         .canvas-bg {
             background-image:
                 linear-gradient(to right, rgba(230, 230, 230, 0.5) 1px, transparent 1px),
@@ -125,9 +134,10 @@
 
     <div class="w-full max-w-5xl">
         <header class="mb-6 text-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-sky-700">Word embeddings demo</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-700">Animal embeddings playground</h1>
             <p class="text-sm md:text-base text-slate-600 mt-2">
-                Drag all animals (pre-placed and new) to their desired positions. Then, generate embeddings.
+                Position each animal by size & environment, tap it to set its habitat (water/land/air),
+                then generate 3-D embeddings.
             </p>
         </header>
 
@@ -166,8 +176,32 @@
                             class="w-full mt-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75">
                         Reset
                     </button>
-                     <p id="status-message" class="text-xs text-slate-500 mt-2 text-center h-4"></p>
-                     <p id="selection-info" class="text-xs text-sky-700 mt-1 text-center min-h-[1rem]"></p>
+                     <p id="status-message" class="text-xs text-slate-500 mt-2 text-center min-h-[1.5rem]"></p>
+                </section>
+
+                <section id="inspector" class="bg-white p-4 sm:p-6 rounded-xl shadow-lg hidden">
+                    <div class="flex items-center justify-between mb-1">
+                        <h2 class="text-xl font-semibold text-sky-600">Inspector</h2>
+                        <button id="inspector-close" class="text-slate-400 hover:text-slate-600 text-lg leading-none" aria-label="Close inspector">&times;</button>
+                    </div>
+                    <div id="inspector-name" class="font-semibold text-slate-800"></div>
+                    <div id="inspector-vector" class="font-mono text-xs text-slate-500 mb-3"></div>
+
+                    <label class="text-xs font-medium text-slate-500">Habitat (3rd dimension)</label>
+                    <div id="medium-control" class="flex gap-1.5 my-1.5">
+                        <button data-medium="water" class="medium-btn flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-1.5 rounded-md transition-colors">🌊 Water</button>
+                        <button data-medium="land"  class="medium-btn flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-1.5 rounded-md transition-colors">🌳 Land</button>
+                        <button data-medium="air"   class="medium-btn flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-1.5 rounded-md transition-colors">☁️ Air</button>
+                    </div>
+                    <input id="z-slider" type="range" min="0" max="100" value="50" class="w-full accent-sky-500">
+                    <div class="flex justify-between text-[10px] text-slate-400 px-0.5">
+                        <span>Water</span><span>Land</span><span>Air</span>
+                    </div>
+
+                    <div id="neighbors-panel" class="mt-4 hidden">
+                        <div class="text-xs font-medium text-slate-500 mb-1">Nearest neighbors (3-D)</div>
+                        <ol id="neighbors-list" class="text-sm space-y-1"></ol>
+                    </div>
                 </section>
             </aside>
         </main>
@@ -180,10 +214,11 @@
                         <button data-sort="name" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Name</button>
                         <button data-sort="x" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by X</button>
                         <button data-sort="y" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Y</button>
+                        <button data-sort="z" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Z</button>
                     </div>
                 </div>
                 <p class="text-sm text-slate-600 mb-3">
-                    Each animal's position on the canvas is encoded as a 2D vector `[x, y]`.
+                    Each animal is encoded as a 3-D vector <span class="font-mono">[x, y, z]</span> — x = environment, y = size, z = habitat.
                 </p>
                 <div id="embeddings-output" class="space-y-2 max-h-[200px] md:max-h-[250px] overflow-y-auto p-1">
                 </div>
@@ -199,39 +234,61 @@
             const resetBtn = document.getElementById('reset-btn');
             const embeddingsOutput = document.getElementById('embeddings-output');
             const statusMessage = document.getElementById('status-message');
-            const selectionInfo = document.getElementById('selection-info');
             const sortControlsContainer = document.getElementById('sort-controls');
             const coordinateTooltip = document.getElementById('coordinate-tooltip');
             const connectionLines = document.getElementById('connection-lines');
             const SVG_NS = 'http://www.w3.org/2000/svg';
+
+            const inspector = document.getElementById('inspector');
+            const inspectorName = document.getElementById('inspector-name');
+            const inspectorVector = document.getElementById('inspector-vector');
+            const inspectorClose = document.getElementById('inspector-close');
+            const mediumControl = document.getElementById('medium-control');
+            const zSlider = document.getElementById('z-slider');
+            const neighborsPanel = document.getElementById('neighbors-panel');
+            const neighborsList = document.getElementById('neighbors-list');
+
+            // Habitat (3rd dimension) metadata. z runs 0 (water) -> 50 (land) -> 100 (air).
+            const MEDIUM = {
+                water: { icon: '🌊', label: 'Water', z: 12 },
+                land:  { icon: '🌳', label: 'Land',  z: 50 },
+                air:   { icon: '☁️', label: 'Air',   z: 88 }
+            };
+            function getZ(el) { const z = parseFloat(el.dataset.z); return isNaN(z) ? 50 : z; }
+            function getMedium(z) { return z < 34 ? 'water' : z < 67 ? 'land' : 'air'; }
 
             const axisLabelYTop = document.getElementById('axis-label-y-top');
             const axisLabelYBottom = document.getElementById('axis-label-y-bottom');
             const axisLabelXLeft = document.getElementById('axis-label-x-left');
             const axisLabelXRight = document.getElementById('axis-label-x-right');
 
+            // x = environment (wild ~low ... domestic ~high), y top-based (large ~low ... small ~high),
+            // z = habitat (water ~0 ... land ~50 ... air ~100). Curated for an even spread.
             const prePlacedAnimalsData = [
-                { name: 'Elephant', xPc: 10, yPc: 10, color: 'bg-slate-500', textColor: 'text-white' },
-                { name: 'Lion', xPc: 15, yPc: 25, color: 'bg-orange-500', textColor: 'text-white' },
-                { name: 'Wolf', xPc: 20, yPc: 45, color: 'bg-gray-600', textColor: 'text-white' },
-                { name: 'Fox', xPc: 25, yPc: 65, color: 'bg-amber-600', textColor: 'text-white' },
-                { name: 'Squirrel', xPc: 18, yPc: 85, color: 'bg-orange-400', textColor: 'text-black' },
-                { name: 'Horse', xPc: 45, yPc: 18, color: 'bg-yellow-600', textColor: 'text-white' },
-                { name: 'Cow', xPc: 50, yPc: 22, color: 'bg-neutral-400', textColor: 'text-black' },
-                { name: 'Pig', xPc: 55, yPc: 55, color: 'bg-pink-400', textColor: 'text-black' },
-                { name: 'Sheep', xPc: 60, yPc: 60, color: 'bg-stone-300', textColor: 'text-black' },
-                { name: 'Chicken', xPc: 52, yPc: 80, color: 'bg-red-400', textColor: 'text-black' },
-                { name: 'Carp', xPc: 58, yPc: 70, color: 'bg-sky-400', textColor: 'text-black' },
-                { name: 'Dog (Sml)', xPc: 85, yPc: 70, color: 'bg-green-500', textColor: 'text-white' },
-                { name: 'Cat', xPc: 90, yPc: 75, color: 'bg-teal-500', textColor: 'text-white' },
-                { name: 'Parrot', xPc: 92, yPc: 85, color: 'bg-red-500', textColor: 'text-white' },
-                { name: 'Hamster', xPc: 88, yPc: 90, color: 'bg-yellow-400', textColor: 'text-black' },
+                // Water 🌊
+                { name: 'Whale',    xPc: 12, yPc: 12, z: 8,  color: 'bg-blue-600',    textColor: 'text-white' },
+                { name: 'Shark',    xPc: 24, yPc: 24, z: 10, color: 'bg-slate-600',   textColor: 'text-white' },
+                { name: 'Carp',     xPc: 82, yPc: 18, z: 15, color: 'bg-sky-500',     textColor: 'text-white' },
+                { name: 'Goldfish', xPc: 90, yPc: 88, z: 12, color: 'bg-orange-400',  textColor: 'text-black' },
+                // Land 🌳
+                { name: 'Elephant', xPc: 14, yPc: 32, z: 50, color: 'bg-slate-500',   textColor: 'text-white' },
+                { name: 'Squirrel', xPc: 26, yPc: 80, z: 50, color: 'bg-amber-600',   textColor: 'text-white' },
+                { name: 'Horse',    xPc: 76, yPc: 34, z: 50, color: 'bg-yellow-700',  textColor: 'text-white' },
+                { name: 'Cow',      xPc: 66, yPc: 44, z: 50, color: 'bg-neutral-400', textColor: 'text-black' },
+                { name: 'Dog',      xPc: 84, yPc: 64, z: 50, color: 'bg-green-600',   textColor: 'text-white' },
+                { name: 'Cat',      xPc: 92, yPc: 76, z: 50, color: 'bg-teal-500',    textColor: 'text-white' },
+                // Air ☁️
+                { name: 'Eagle',    xPc: 16, yPc: 48, z: 92, color: 'bg-amber-800',   textColor: 'text-white' },
+                { name: 'Sparrow',  xPc: 30, yPc: 90, z: 90, color: 'bg-stone-400',   textColor: 'text-black' },
+                { name: 'Parrot',   xPc: 78, yPc: 56, z: 88, color: 'bg-red-500',     textColor: 'text-white' },
+                { name: 'Chicken',  xPc: 64, yPc: 72, z: 68, color: 'bg-red-400',     textColor: 'text-black' },
             ];
+            // In-between / coverage cases left for the user to place.
             const newAnimalsToPlaceData = [
-                { id: 'bear', name: 'Bear', color: 'bg-stone-700', textColor: 'text-white' },
-                { id: 'rabbit', name: 'Rabbit', color: 'bg-slate-400', textColor: 'text-black' },
-                { id: 'goldfish', name: 'Goldfish', color: 'bg-orange-400', textColor: 'text-black' },
-                { id: 'whale', name: 'Whale', color: 'bg-blue-600', textColor: 'text-white' }
+                { id: 'clownfish', name: 'Clownfish', z: 12, color: 'bg-orange-500', textColor: 'text-white' },
+                { id: 'seal',      name: 'Seal',      z: 30, color: 'bg-stone-500',  textColor: 'text-white' },
+                { id: 'goose',     name: 'Goose',     z: 80, color: 'bg-gray-300',   textColor: 'text-black' },
+                { id: 'bat',       name: 'Bat',       z: 85, color: 'bg-purple-800', textColor: 'text-white' }
             ];
 
             let draggedElement = null;
@@ -239,7 +296,8 @@
             let dragStartX = 0, dragStartY = 0;
             let isDragging = false;
             let inspectionMode = false;   // true once embeddings have been generated
-            let selectedName = null;      // animal whose neighbors are shown
+            let selectedName = null;      // animal currently open in the inspector
+            const elementsByName = {};    // name -> card element (for neighbor lookups)
             let placedNewAnimalsCount = 0;
             let currentEmbeddingsData = [];
             let activeSortKey = 'name';
@@ -255,13 +313,23 @@
                 };
             }
 
-            // Embedding vector [x, y] as integers 0-100.
-            // X grows left->right; Y grows bottom->top (traditional axes).
+            // Embedding vector [x, y, z] as integers 0-100.
+            // X grows left->right; Y grows bottom->top (traditional axes); Z = habitat.
             function getAnimalCoordinates(animalEl) {
                 const { cx, cy } = getCenterPx(animalEl);
                 const x = Math.round((cx / canvas.clientWidth) * 100);
                 const y = Math.round((1 - cy / canvas.clientHeight) * 100);
-                return { x, y };
+                const z = Math.round(getZ(animalEl));
+                return { x, y, z };
+            }
+
+            // Reflect a card's z (habitat) as a colored ring + leading icon.
+            function applyMediumVisual(animalEl) {
+                const m = getMedium(getZ(animalEl));
+                animalEl.classList.remove('medium-water', 'medium-land', 'medium-air');
+                animalEl.classList.add('medium-' + m);
+                const icon = animalEl.querySelector('.medium-icon');
+                if (icon) icon.textContent = MEDIUM[m].icon;
             }
 
             // Persist a card's on-screen center as a percentage so it survives resizes.
@@ -296,11 +364,18 @@
 
             function createAnimalElement(animal, isInitiallyOnShelf = false) {
                 const div = document.createElement('div');
-                div.textContent = animal.name;
                 div.dataset.name = animal.name;
                 div.dataset.bgColor = animal.color;
                 div.dataset.textColor = animal.textColor;
-                div.className = `animal-card ${animal.color} ${animal.textColor} px-2.5 py-1.5 md:px-3 md:py-2 rounded-md text-xs sm:text-sm font-semibold shadow-sm transition-all duration-150 ease-in-out`;
+                div.dataset.z = animal.z != null ? animal.z : 50;
+                div.className = `animal-card ${animal.color} ${animal.textColor} px-2.5 py-1.5 md:px-3 md:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all duration-150 ease-in-out`;
+
+                const icon = document.createElement('span');
+                icon.className = 'medium-icon mr-1';
+                div.appendChild(icon);
+                div.appendChild(document.createTextNode(animal.name));
+                applyMediumVisual(div);
+                elementsByName[animal.name] = div;
 
                 // We drive all dragging through Pointer Events (works for mouse + touch),
                 // so the native HTML5 drag API is explicitly disabled.
@@ -434,12 +509,13 @@
                     el.style.cursor = 'grab';
                     hideCoordinateTooltip();
                     storeCardPercent(el);
+                    if (selectedName === el.dataset.name) updateInspector(el);
                     if (inspectionMode) {
                         updateEmbeddingFor(el);
                         if (selectedName) drawNeighbors(selectedName); // lines follow the moved card
                     }
-                } else if (inspectionMode && canvas.contains(el)) {
-                    // A tap (no drag) in inspection mode selects the card and shows neighbors.
+                } else {
+                    // A tap (no drag) opens the inspector — set habitat anytime, see neighbors after Generate.
                     selectAnimal(el.dataset.name);
                 }
 
@@ -449,17 +525,22 @@
             
             // --- Similarity / nearest-neighbor inspection ---
 
-            // Recompute and store a single animal's vector after it has been dragged.
+            function vectorOf(el) {
+                const c = getAnimalCoordinates(el);
+                return [c.x, c.y, c.z];
+            }
+
+            // 3-D Euclidean distance between two [x, y, z] vectors.
+            function distance3D(a, b) {
+                return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+            }
+
+            // Recompute and store a single animal's vector after it has been moved/edited.
             function updateEmbeddingFor(animalEl) {
                 const entry = currentEmbeddingsData.find(d => d.name === animalEl.dataset.name);
                 if (!entry) return;
-                const coords = getAnimalCoordinates(animalEl);
-                entry.vector = [coords.x, coords.y];
+                entry.vector = vectorOf(animalEl);
                 displaySortedEmbeddings();
-            }
-
-            function euclidean(a, b) {
-                return Math.hypot(a.vector[0] - b.vector[0], a.vector[1] - b.vector[1]);
             }
 
             function clearNeighbors() {
@@ -467,15 +548,17 @@
                 document.querySelectorAll('.animal-card.neighbor').forEach(el => el.classList.remove('neighbor'));
             }
 
-            // Draw lines from the selected animal to its NEIGHBOR_COUNT closest neighbors.
+            // Draw lines from the selected animal to its NEIGHBOR_COUNT closest neighbors
+            // (in full 3-D embedding space) and list them in the inspector.
             function drawNeighbors(name) {
                 clearNeighbors();
+                neighborsList.innerHTML = '';
                 const source = currentEmbeddingsData.find(d => d.name === name);
-                if (!source) return;
+                if (!source) { neighborsPanel.classList.add('hidden'); return; }
 
                 const neighbors = currentEmbeddingsData
                     .filter(d => d.name !== name)
-                    .map(d => ({ data: d, dist: euclidean(source, d) }))
+                    .map(d => ({ data: d, dist: distance3D(source.vector, d.vector) }))
                     .sort((a, b) => a.dist - b.dist)
                     .slice(0, NEIGHBOR_COUNT);
 
@@ -493,19 +576,71 @@
                     line.setAttribute('stroke-opacity', `${1 - i * 0.22}`); // closer = bolder
                     connectionLines.appendChild(line);
                     n.data.element.classList.add('neighbor');
-                });
 
-                const summary = neighbors.map(n => `${n.data.name} (${n.dist.toFixed(0)})`).join(', ');
-                selectionInfo.textContent = neighbors.length
-                    ? `${name} → nearest: ${summary}`
-                    : `${name} selected`;
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between';
+                    const m = getMedium(n.data.vector[2]);
+                    const label = document.createElement('span');
+                    label.textContent = `${MEDIUM[m].icon} ${n.data.name}`;
+                    const dist = document.createElement('span');
+                    dist.className = 'font-mono text-slate-500';
+                    dist.textContent = n.dist.toFixed(0);
+                    li.appendChild(label);
+                    li.appendChild(dist);
+                    neighborsList.appendChild(li);
+                });
+                neighborsPanel.classList.toggle('hidden', neighbors.length === 0);
+            }
+
+            function updateMediumButtons(m) {
+                mediumControl.querySelectorAll('.medium-btn').forEach(b => {
+                    b.classList.remove('active-water', 'active-land', 'active-air');
+                    if (b.dataset.medium === m) b.classList.add('active-' + m);
+                });
+            }
+
+            function updateInspector(el) {
+                const c = getAnimalCoordinates(el);
+                const m = getMedium(c.z);
+                inspectorName.textContent = `${MEDIUM[m].icon} ${el.dataset.name}`;
+                inspectorVector.textContent = `[${c.x}, ${c.y}, ${c.z}]`;
+                zSlider.value = Math.round(getZ(el));
+                updateMediumButtons(m);
             }
 
             function selectAnimal(name) {
+                const el = elementsByName[name];
+                if (!el) return;
                 selectedName = name;
-                const data = currentEmbeddingsData.find(d => d.name === name);
-                highlightAnimalElement(data ? data.element : null);
-                drawNeighbors(name);
+                highlightAnimalElement(el);
+                inspector.classList.remove('hidden');
+                updateInspector(el);
+                if (currentEmbeddingsData.length) {
+                    drawNeighbors(name);
+                } else {
+                    neighborsPanel.classList.add('hidden');
+                }
+            }
+
+            function closeInspector() {
+                inspector.classList.add('hidden');
+                selectedName = null;
+                removeAllHighlights();
+                clearNeighbors();
+            }
+
+            // Set the selected animal's habitat (z) from the slider or Water/Land/Air buttons.
+            function setZ(z) {
+                if (selectedName == null) return;
+                const el = elementsByName[selectedName];
+                if (!el) return;
+                el.dataset.z = z;
+                applyMediumVisual(el);
+                updateInspector(el);
+                if (currentEmbeddingsData.length) {
+                    updateEmbeddingFor(el);
+                    drawNeighbors(selectedName);
+                }
             }
 
             function updateButtonAndStatus() {
@@ -588,19 +723,27 @@
             }
 
             function displaySortedEmbeddings() {
+                const axisIndex = { x: 0, y: 1, z: 2 };
                 if (activeSortKey === 'name') {
                     currentEmbeddingsData.sort((a, b) => a.name.localeCompare(b.name));
-                } else if (activeSortKey === 'x') {
-                    currentEmbeddingsData.sort((a, b) => a.vector[0] - b.vector[0]);
-                } else if (activeSortKey === 'y') {
-                    currentEmbeddingsData.sort((a, b) => a.vector[1] - b.vector[1]);
+                } else if (activeSortKey in axisIndex) {
+                    const i = axisIndex[activeSortKey];
+                    currentEmbeddingsData.sort((a, b) => a.vector[i] - b.vector[i]);
                 }
 
-                embeddingsOutput.innerHTML = ''; 
+                embeddingsOutput.innerHTML = '';
                 currentEmbeddingsData.forEach(data => {
                     const entryDiv = document.createElement('div');
                     entryDiv.className = `flex items-center justify-between p-2.5 rounded-lg shadow-sm ${data.bgColor} ${data.textColor}`;
-                    entryDiv.innerHTML = `<span class="font-semibold text-sm">${data.name}:</span><span class="font-mono text-xs sm:text-sm">[${data.vector[0]}, ${data.vector[1]}]</span>`;
+                    const icon = MEDIUM[getMedium(data.vector[2])].icon;
+                    const name = document.createElement('span');
+                    name.className = 'font-semibold text-sm';
+                    name.textContent = `${icon} ${data.name}:`;
+                    const vec = document.createElement('span');
+                    vec.className = 'font-mono text-xs sm:text-sm';
+                    vec.textContent = `[${data.vector[0]}, ${data.vector[1]}, ${data.vector[2]}]`;
+                    entryDiv.appendChild(name);
+                    entryDiv.appendChild(vec);
                     embeddingsOutput.appendChild(entryDiv);
                 });
                 updateSortButtonActiveState();
@@ -615,11 +758,9 @@
                 currentEmbeddingsData = [];
                 activeSortKey = 'name';
                 inspectionMode = false;
-                selectedName = null;
+                Object.keys(elementsByName).forEach(k => delete elementsByName[k]);
                 hideAxes();
-                removeAllHighlights();
-                clearNeighbors();
-                selectionInfo.textContent = '';
+                closeInspector();
 
                 prePlacedAnimalsData.forEach(animalData => canvas.appendChild(createAnimalElement(animalData, false)));
                 newAnimalsToPlaceData.forEach(animalData => newAnimalsShelf.appendChild(createAnimalElement(animalData, true)));
@@ -638,7 +779,7 @@
                     const coords = getAnimalCoordinates(animalEl);
                     currentEmbeddingsData.push({
                         name: animalEl.dataset.name,
-                        vector: [coords.x, coords.y],
+                        vector: [coords.x, coords.y, coords.z],
                         bgColor: animalEl.dataset.bgColor || 'bg-gray-200',
                         textColor: animalEl.dataset.textColor || 'text-black',
                         element: animalEl
@@ -652,22 +793,28 @@
                 inspectionMode = true; // cards stay draggable (live vectors) AND tappable (neighbors)
                 generateEmbeddingsBtn.textContent = 'Embeddings Generated!';
                 generateEmbeddingsBtn.disabled = true;
-                statusMessage.textContent = 'Tap an animal to see its nearest neighbors. Drag to update vectors.';
+                statusMessage.textContent = 'Tap an animal for its nearest neighbors. Drag or set habitat to update vectors.';
 
                 document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = false);
+                if (selectedName) drawNeighbors(selectedName); // refresh inspector if a card was open
             });
 
             resetBtn.addEventListener('click', () => {
                 initializeAnimals();
             });
 
-            // Clicking empty canvas space clears the current neighbor selection.
+            // Inspector controls: habitat (z) editing.
+            zSlider.addEventListener('input', (e) => setZ(parseInt(e.target.value, 10)));
+            mediumControl.addEventListener('click', (e) => {
+                const btn = e.target.closest('.medium-btn');
+                if (btn) setZ(MEDIUM[btn.dataset.medium].z);
+            });
+            inspectorClose.addEventListener('click', closeInspector);
+
+            // Clicking empty canvas space clears the current selection.
             canvas.addEventListener('pointerdown', (e) => {
-                if (inspectionMode && (e.target === canvas || e.target === connectionLines)) {
-                    selectedName = null;
-                    removeAllHighlights();
-                    clearNeighbors();
-                    selectionInfo.textContent = '';
+                if (selectedName && (e.target === canvas || e.target === connectionLines)) {
+                    closeInspector();
                 }
             });
             
