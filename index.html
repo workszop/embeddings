@@ -5,25 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Embedding Demo</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             overscroll-behavior: none;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.01em;
         }
         .animal-card {
             position: relative;
+            /* Uniform tile size — wide enough for the longest name ("Clownfish"). */
+            width: 6.5rem;
+            text-align: center;
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
         }
-        /* 3rd dimension (habitat) shown as a colored ring around each card. */
-        .medium-water { box-shadow: 0 0 0 3px #0EA5E9, 0 1px 2px rgba(0,0,0,0.12); }
-        .medium-land  { box-shadow: 0 0 0 3px #16A34A, 0 1px 2px rgba(0,0,0,0.12); }
-        .medium-air   { box-shadow: 0 0 0 3px #8B5CF6, 0 1px 2px rgba(0,0,0,0.12); }
-        .medium-icon { font-size: 0.85em; }
+        /* Inspector habitat control colors (the editing control, not a tile marking). */
         .medium-btn.active-water { background-color: #0EA5E9; color: #fff; }
         .medium-btn.active-land  { background-color: #16A34A; color: #fff; }
         .medium-btn.active-air   { background-color: #8B5CF6; color: #fff; }
@@ -50,30 +57,40 @@
             outline-offset: 2px;
             z-index: 800;
         }
-        #embeddings-output::-webkit-scrollbar {
+        #embeddings-scroll::-webkit-scrollbar {
             width: 8px;
         }
-        #embeddings-output::-webkit-scrollbar-track {
+        #embeddings-scroll::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
-        #embeddings-output::-webkit-scrollbar-thumb {
-            background: #888;
+        #embeddings-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
             border-radius: 10px;
         }
-        #embeddings-output::-webkit-scrollbar-thumb:hover {
-            background: #555;
+        #embeddings-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
+        .th-sort {
+            cursor: pointer;
+            user-select: none;
+            padding: 0.4rem 0.5rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .th-sort:hover { color: #0369a1; }
+        .th-sort .sort-ind { opacity: 0; margin-left: 2px; font-size: 0.7em; }
+        .th-sort.active { color: #0369a1; }
+        .th-sort.active .sort-ind { opacity: 1; }
+        #embeddings-table thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+        .scene-3d-canvas { touch-action: none; cursor: grab; }
+        .scene-3d-canvas:active { cursor: grabbing; }
         .rotate-text-left {
             writing-mode: vertical-rl;
             transform: rotate(180deg);
         }
         .rotate-text-right {
             writing-mode: vertical-rl;
-        }
-        .sort-button.active {
-            background-color: #0369a1;
-            color: white;
         }
         .axis-tick {
             position: absolute;
@@ -143,7 +160,12 @@
 
         <main class="flex flex-col lg:flex-row gap-6 md:gap-8">
             <section class="lg:w-2/3 bg-white p-4 sm:p-6 rounded-xl shadow-lg relative">
-                <h2 class="text-xl font-semibold mb-4 text-sky-600">Canvas</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-sky-600">Canvas</h2>
+                    <button id="view-3d-btn"
+                            class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-1.5 px-3 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            disabled>View in 3-D</button>
+                </div>
                 <div id="axis-label-y-top" class="hidden absolute top-1 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-slate-500 font-medium z-[5]">Size: Large</div>
                 <div id="axis-label-y-bottom" class="hidden absolute bottom-1 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-slate-500 font-medium z-[5]">Size: Small</div>
                 <div id="axis-label-x-left" class="hidden absolute left-1 top-1/2 -translate-y-1/2 z-[5]">
@@ -155,6 +177,16 @@
                 <div id="canvas" class="relative w-full h-[400px] md:h-[500px] bg-sky-50 canvas-bg border-2 border-sky-200 rounded-lg overflow-hidden">
                     <svg id="connection-lines" class="absolute top-0 left-0 w-full h-full pointer-events-none"></svg>
                     <div id="coordinate-tooltip" class="coordinate-tooltip"></div>
+                </div>
+
+                <div id="view-3d" class="hidden relative w-full h-[400px] md:h-[500px] bg-slate-900 rounded-lg overflow-hidden border-2 border-slate-700">
+                    <canvas id="scene-3d" class="scene-3d-canvas absolute inset-0 w-full h-full"></canvas>
+                    <div class="absolute top-2 left-3 text-[11px] text-slate-300 space-y-0.5 pointer-events-none">
+                        <div><span class="inline-block w-2.5 h-2.5 rounded-full align-middle mr-1" style="background:#0EA5E9"></span>Water</div>
+                        <div><span class="inline-block w-2.5 h-2.5 rounded-full align-middle mr-1" style="background:#16A34A"></span>Land</div>
+                        <div><span class="inline-block w-2.5 h-2.5 rounded-full align-middle mr-1" style="background:#8B5CF6"></span>Air</div>
+                    </div>
+                    <div class="absolute bottom-2 right-3 text-[11px] text-slate-400 pointer-events-none">drag to rotate · scroll to zoom</div>
                 </div>
             </section>
 
@@ -208,19 +240,29 @@
 
         <footer class="mt-6 md:mt-8 w-full flex flex-col gap-6 md:gap-8">
             <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
-                    <h2 class="text-xl font-semibold text-sky-600 mb-2 sm:mb-0">Generated Embeddings</h2>
-                    <div id="sort-controls" class="flex gap-2">
-                        <button data-sort="name" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Name</button>
-                        <button data-sort="x" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by X</button>
-                        <button data-sort="y" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Y</button>
-                        <button data-sort="z" class="sort-button text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-1 px-2.5 rounded-md transition-colors duration-150 disabled:opacity-50" disabled>Sort by Z</button>
-                    </div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-baseline mb-1">
+                    <h2 class="text-xl font-semibold text-sky-600 mb-1 sm:mb-0">Generated embeddings</h2>
+                    <span id="embeddings-meta" class="text-xs text-slate-400"></span>
                 </div>
                 <p class="text-sm text-slate-600 mb-3">
-                    Each animal is encoded as a 3-D vector <span class="font-mono">[x, y, z]</span> — x = environment, y = size, z = habitat.
+                    Each animal is a 3-D vector <span class="font-mono">[x, y, z]</span> — x = environment, y = size, z = habitat.
+                    Click a column to sort, or a row to inspect it on the canvas.
                 </p>
-                <div id="embeddings-output" class="space-y-2 max-h-[200px] md:max-h-[250px] overflow-y-auto p-1">
+                <div id="embeddings-empty" class="text-sm text-slate-400 italic py-6 text-center">
+                    Place the animals and press “Generate Embeddings” to see their vectors here.
+                </div>
+                <div id="embeddings-scroll" class="hidden max-h-[220px] md:max-h-[280px] overflow-y-auto">
+                    <table id="embeddings-table" class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-slate-200 text-xs uppercase tracking-wide">
+                                <th data-sort="name" class="th-sort text-left">Animal <span class="sort-ind"></span></th>
+                                <th data-sort="x" class="th-sort text-right">x <span class="sort-ind"></span></th>
+                                <th data-sort="y" class="th-sort text-right">y <span class="sort-ind"></span></th>
+                                <th data-sort="z" class="th-sort text-right">z <span class="sort-ind"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="embeddings-body"></tbody>
+                    </table>
                 </div>
             </section>
         </footer>
@@ -232,12 +274,20 @@
             const newAnimalsShelf = document.getElementById('new-animals-shelf');
             const generateEmbeddingsBtn = document.getElementById('generate-embeddings-btn');
             const resetBtn = document.getElementById('reset-btn');
-            const embeddingsOutput = document.getElementById('embeddings-output');
             const statusMessage = document.getElementById('status-message');
-            const sortControlsContainer = document.getElementById('sort-controls');
             const coordinateTooltip = document.getElementById('coordinate-tooltip');
             const connectionLines = document.getElementById('connection-lines');
             const SVG_NS = 'http://www.w3.org/2000/svg';
+
+            const embeddingsTable = document.getElementById('embeddings-table');
+            const embeddingsBody = document.getElementById('embeddings-body');
+            const embeddingsScroll = document.getElementById('embeddings-scroll');
+            const embeddingsEmpty = document.getElementById('embeddings-empty');
+            const embeddingsMeta = document.getElementById('embeddings-meta');
+
+            const view3dBtn = document.getElementById('view-3d-btn');
+            const view3d = document.getElementById('view-3d');
+            const scene3d = document.getElementById('scene-3d');
 
             const inspector = document.getElementById('inspector');
             const inspectorName = document.getElementById('inspector-name');
@@ -301,7 +351,13 @@
             let placedNewAnimalsCount = 0;
             let currentEmbeddingsData = [];
             let activeSortKey = 'name';
+            let sortDir = 1;              // 1 = ascending, -1 = descending
             const NEIGHBOR_COUNT = 3;     // how many nearest neighbors to connect
+
+            // 3-D view state.
+            let in3D = false;
+            let yaw = -0.7, pitch = -0.45, zoom3d = 1;
+            let rotating3d = false, lastPx = 0, lastPy = 0;
 
             // Center of a card in canvas pixel space.
             function getCenterPx(animalEl) {
@@ -323,13 +379,9 @@
                 return { x, y, z };
             }
 
-            // Reflect a card's z (habitat) as a colored ring + leading icon.
-            function applyMediumVisual(animalEl) {
-                const m = getMedium(getZ(animalEl));
-                animalEl.classList.remove('medium-water', 'medium-land', 'medium-air');
-                animalEl.classList.add('medium-' + m);
-                const icon = animalEl.querySelector('.medium-icon');
-                if (icon) icon.textContent = MEDIUM[m].icon;
+            // Habitat band color (used for the 3-D scatter + bottom-table dot).
+            function habitatColor(z) {
+                return z < 34 ? '#0EA5E9' : z < 67 ? '#16A34A' : '#8B5CF6';
             }
 
             // Persist a card's on-screen center as a percentage so it survives resizes.
@@ -368,13 +420,8 @@
                 div.dataset.bgColor = animal.color;
                 div.dataset.textColor = animal.textColor;
                 div.dataset.z = animal.z != null ? animal.z : 50;
+                div.textContent = animal.name;
                 div.className = `animal-card ${animal.color} ${animal.textColor} px-2.5 py-1.5 md:px-3 md:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all duration-150 ease-in-out`;
-
-                const icon = document.createElement('span');
-                icon.className = 'medium-icon mr-1';
-                div.appendChild(icon);
-                div.appendChild(document.createTextNode(animal.name));
-                applyMediumVisual(div);
                 elementsByName[animal.name] = div;
 
                 // We drive all dragging through Pointer Events (works for mouse + touch),
@@ -384,9 +431,6 @@
 
                 if (isInitiallyOnShelf) {
                     div.id = animal.id;
-                    div.style.minWidth = '80px';
-                    div.style.width = '80px';
-                    div.style.textAlign = 'center';
                 } else {
                     const canvasWidth = canvas.clientWidth;
                     const canvasHeight = canvas.clientHeight;
@@ -464,9 +508,6 @@
                     // Lift a shelf card onto the canvas the moment it starts moving.
                     if (newAnimalsShelf.contains(draggedElement)) {
                         draggedElement.style.position = 'absolute';
-                        draggedElement.style.minWidth = '80px';
-                        draggedElement.style.width = '80px';
-                        draggedElement.style.textAlign = 'center';
                         canvas.appendChild(draggedElement);
                         if (!draggedElement.dataset.placedOnCanvas) {
                             placedNewAnimalsCount++;
@@ -579,9 +620,8 @@
 
                     const li = document.createElement('li');
                     li.className = 'flex justify-between';
-                    const m = getMedium(n.data.vector[2]);
                     const label = document.createElement('span');
-                    label.textContent = `${MEDIUM[m].icon} ${n.data.name}`;
+                    label.textContent = n.data.name;
                     const dist = document.createElement('span');
                     dist.className = 'font-mono text-slate-500';
                     dist.textContent = n.dist.toFixed(0);
@@ -590,6 +630,7 @@
                     neighborsList.appendChild(li);
                 });
                 neighborsPanel.classList.toggle('hidden', neighbors.length === 0);
+                if (in3D) render3D();
             }
 
             function updateMediumButtons(m) {
@@ -601,11 +642,10 @@
 
             function updateInspector(el) {
                 const c = getAnimalCoordinates(el);
-                const m = getMedium(c.z);
-                inspectorName.textContent = `${MEDIUM[m].icon} ${el.dataset.name}`;
+                inspectorName.textContent = el.dataset.name;
                 inspectorVector.textContent = `[${c.x}, ${c.y}, ${c.z}]`;
                 zSlider.value = Math.round(getZ(el));
-                updateMediumButtons(m);
+                updateMediumButtons(getMedium(c.z));
             }
 
             function selectAnimal(name) {
@@ -619,7 +659,9 @@
                     drawNeighbors(name);
                 } else {
                     neighborsPanel.classList.add('hidden');
+                    if (in3D) render3D();
                 }
+                highlightTableRow(name);
             }
 
             function closeInspector() {
@@ -627,6 +669,8 @@
                 selectedName = null;
                 removeAllHighlights();
                 clearNeighbors();
+                highlightTableRow(null);
+                if (in3D) render3D();
             }
 
             // Set the selected animal's habitat (z) from the slider or Water/Land/Air buttons.
@@ -635,11 +679,12 @@
                 const el = elementsByName[selectedName];
                 if (!el) return;
                 el.dataset.z = z;
-                applyMediumVisual(el);
                 updateInspector(el);
                 if (currentEmbeddingsData.length) {
                     updateEmbeddingFor(el);
                     drawNeighbors(selectedName);
+                } else if (in3D) {
+                    render3D();
                 }
             }
 
@@ -712,64 +757,87 @@
                 }
             }
             
-            function updateSortButtonActiveState() {
-                document.querySelectorAll('#sort-controls .sort-button').forEach(button => {
-                    if (button.dataset.sort === activeSortKey) {
-                        button.classList.add('active');
-                    } else {
-                        button.classList.remove('active');
-                    }
+            function updateSortHeaders() {
+                embeddingsTable.querySelectorAll('.th-sort').forEach(th => {
+                    const active = th.dataset.sort === activeSortKey;
+                    th.classList.toggle('active', active);
+                    const ind = th.querySelector('.sort-ind');
+                    if (ind) ind.textContent = active ? (sortDir === 1 ? '▲' : '▼') : '';
+                });
+            }
+
+            function highlightTableRow(name) {
+                embeddingsBody.querySelectorAll('tr').forEach(tr => {
+                    tr.classList.toggle('bg-sky-50', tr.dataset.name === name);
                 });
             }
 
             function displaySortedEmbeddings() {
                 const axisIndex = { x: 0, y: 1, z: 2 };
                 if (activeSortKey === 'name') {
-                    currentEmbeddingsData.sort((a, b) => a.name.localeCompare(b.name));
+                    currentEmbeddingsData.sort((a, b) => sortDir * a.name.localeCompare(b.name));
                 } else if (activeSortKey in axisIndex) {
                     const i = axisIndex[activeSortKey];
-                    currentEmbeddingsData.sort((a, b) => a.vector[i] - b.vector[i]);
+                    currentEmbeddingsData.sort((a, b) => sortDir * (a.vector[i] - b.vector[i]));
                 }
 
-                embeddingsOutput.innerHTML = '';
+                embeddingsBody.innerHTML = '';
                 currentEmbeddingsData.forEach(data => {
-                    const entryDiv = document.createElement('div');
-                    entryDiv.className = `flex items-center justify-between p-2.5 rounded-lg shadow-sm ${data.bgColor} ${data.textColor}`;
-                    const icon = MEDIUM[getMedium(data.vector[2])].icon;
-                    const name = document.createElement('span');
-                    name.className = 'font-semibold text-sm';
-                    name.textContent = `${icon} ${data.name}:`;
-                    const vec = document.createElement('span');
-                    vec.className = 'font-mono text-xs sm:text-sm';
-                    vec.textContent = `[${data.vector[0]}, ${data.vector[1]}, ${data.vector[2]}]`;
-                    entryDiv.appendChild(name);
-                    entryDiv.appendChild(vec);
-                    embeddingsOutput.appendChild(entryDiv);
+                    const tr = document.createElement('tr');
+                    tr.dataset.name = data.name;
+                    tr.className = 'cursor-pointer hover:bg-slate-50 border-b border-slate-100';
+                    if (data.name === selectedName) tr.classList.add('bg-sky-50');
+
+                    const nameTd = document.createElement('td');
+                    nameTd.className = 'py-1.5 px-2';
+                    const dot = document.createElement('span');
+                    dot.className = `inline-block w-2.5 h-2.5 rounded-full align-middle mr-2 ${data.bgColor}`;
+                    const label = document.createElement('span');
+                    label.className = 'font-medium align-middle';
+                    label.textContent = data.name;
+                    nameTd.appendChild(dot);
+                    nameTd.appendChild(label);
+                    tr.appendChild(nameTd);
+
+                    [0, 1, 2].forEach(i => {
+                        const td = document.createElement('td');
+                        td.className = 'py-1.5 px-2 text-right font-mono text-slate-600';
+                        td.textContent = data.vector[i];
+                        tr.appendChild(td);
+                    });
+
+                    tr.addEventListener('click', () => selectAnimal(data.name));
+                    embeddingsBody.appendChild(tr);
                 });
-                updateSortButtonActiveState();
+
+                embeddingsMeta.textContent = `${currentEmbeddingsData.length} animals · click a row to inspect`;
+                updateSortHeaders();
             }
 
             function initializeAnimals() {
                 // Preserve the SVG overlay + tooltip while clearing cards/ticks.
                 canvas.querySelectorAll('.animal-card, .axis-tick, .tick-label').forEach(el => el.remove());
                 newAnimalsShelf.innerHTML = '';
-                embeddingsOutput.innerHTML = '';
+                embeddingsBody.innerHTML = '';
+                embeddingsScroll.classList.add('hidden');
+                embeddingsEmpty.classList.remove('hidden');
+                embeddingsMeta.textContent = '';
                 placedNewAnimalsCount = 0;
                 currentEmbeddingsData = [];
                 activeSortKey = 'name';
+                sortDir = 1;
                 inspectionMode = false;
                 Object.keys(elementsByName).forEach(k => delete elementsByName[k]);
                 hideAxes();
                 closeInspector();
+                if (in3D) exit3D();
+                view3dBtn.disabled = true;
 
                 prePlacedAnimalsData.forEach(animalData => canvas.appendChild(createAnimalElement(animalData, false)));
                 newAnimalsToPlaceData.forEach(animalData => newAnimalsShelf.appendChild(createAnimalElement(animalData, true)));
 
                 updateButtonAndStatus();
                 generateEmbeddingsBtn.textContent = 'Generate Embeddings';
-
-                document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = true);
-                updateSortButtonActiveState();
             }
 
             generateEmbeddingsBtn.addEventListener('click', () => {
@@ -787,15 +855,18 @@
                 });
 
                 activeSortKey = 'name';
+                sortDir = 1;
+                embeddingsEmpty.classList.add('hidden');
+                embeddingsScroll.classList.remove('hidden');
                 displaySortedEmbeddings();
 
                 showAxes();
                 inspectionMode = true; // cards stay draggable (live vectors) AND tappable (neighbors)
                 generateEmbeddingsBtn.textContent = 'Embeddings Generated!';
                 generateEmbeddingsBtn.disabled = true;
+                view3dBtn.disabled = false;
                 statusMessage.textContent = 'Tap an animal for its nearest neighbors. Drag or set habitat to update vectors.';
 
-                document.querySelectorAll('#sort-controls .sort-button').forEach(button => button.disabled = false);
                 if (selectedName) drawNeighbors(selectedName); // refresh inspector if a card was open
             });
 
@@ -818,15 +889,122 @@
                 }
             });
             
-            sortControlsContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('sort-button')) {
-                    const sortKey = e.target.dataset.sort;
-                    if (sortKey && currentEmbeddingsData.length > 0) {
-                        activeSortKey = sortKey;
-                        displaySortedEmbeddings();
-                    }
+            // Sort by clicking a table header; clicking the active column flips direction.
+            embeddingsTable.querySelector('thead').addEventListener('click', (e) => {
+                const th = e.target.closest('.th-sort');
+                if (!th || !currentEmbeddingsData.length) return;
+                const key = th.dataset.sort;
+                if (key === activeSortKey) {
+                    sortDir = -sortDir;
+                } else {
+                    activeSortKey = key;
+                    sortDir = 1;
                 }
+                displaySortedEmbeddings();
             });
+
+            // --- 3-D rotatable view ---
+
+            function rotatePoint(x, y, z) {
+                x -= 50; y -= 50; z -= 50;            // center the unit cube
+                const cy = Math.cos(yaw), sy = Math.sin(yaw);
+                const x1 = x * cy + z * sy;
+                const z1 = -x * sy + z * cy;          // yaw about the vertical (size) axis
+                const cx = Math.cos(pitch), sx = Math.sin(pitch);
+                const y1 = y * cx - z1 * sx;
+                const z2 = y * sx + z1 * cx;           // pitch about the horizontal axis
+                return { x: x1, y: y1, z: z2 };
+            }
+
+            function render3D() {
+                const ctx = scene3d.getContext('2d');
+                const dpr = window.devicePixelRatio || 1;
+                const W = scene3d.clientWidth, H = scene3d.clientHeight;
+                if (!W || !H) return;
+                scene3d.width = W * dpr; scene3d.height = H * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, W, H);
+                const cx = W / 2, cyc = H / 2;
+                const scale = (Math.min(W, H) / 150) * zoom3d;
+                const proj = (x, y, z) => {
+                    const r = rotatePoint(x, y, z);
+                    return { sx: cx + r.x * scale, sy: cyc - r.y * scale, depth: r.z };
+                };
+
+                // Axes: X = environment, Y = size, Z = habitat.
+                const axes = [
+                    { a: [0, 50, 50], b: [100, 50, 50], lo: 'wild', hi: 'domestic' },
+                    { a: [50, 0, 50], b: [50, 100, 50], lo: 'small', hi: 'large' },
+                    { a: [50, 50, 0], b: [50, 50, 100], lo: 'water', hi: 'air' }
+                ];
+                ctx.lineWidth = 1.25;
+                ctx.font = '11px "Space Grotesk", sans-serif';
+                axes.forEach(ax => {
+                    const p0 = proj(...ax.a), p1 = proj(...ax.b);
+                    ctx.strokeStyle = 'rgba(148,163,184,0.6)';
+                    ctx.beginPath(); ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.stroke();
+                    ctx.fillStyle = 'rgba(148,163,184,0.9)';
+                    ctx.fillText(ax.hi, p1.sx + 4, p1.sy);
+                    ctx.fillText(ax.lo, p0.sx + 4, p0.sy);
+                });
+
+                const pts = currentEmbeddingsData
+                    .map(d => ({ d, p: proj(d.vector[0], d.vector[1], d.vector[2]) }))
+                    .sort((a, b) => a.p.depth - b.p.depth); // painter's order: far first
+
+                pts.forEach(({ d, p }) => {
+                    const sel = d.name === selectedName;
+                    const r = Math.max(3, (sel ? 6 : 4.5) * (0.7 + (p.depth + 90) / 240));
+                    ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+                    ctx.fillStyle = habitatColor(d.vector[2]);
+                    ctx.globalAlpha = 0.92; ctx.fill(); ctx.globalAlpha = 1;
+                    if (sel) { ctx.lineWidth = 2; ctx.strokeStyle = '#FACC15'; ctx.stroke(); }
+                    ctx.fillStyle = sel ? '#FDE68A' : '#e2e8f0';
+                    ctx.font = (sel ? '600 ' : '') + '11px "Plus Jakarta Sans", sans-serif';
+                    ctx.fillText(d.name, p.sx + r + 3, p.sy + 3);
+                });
+            }
+
+            function enter3D() {
+                if (!currentEmbeddingsData.length) return;
+                in3D = true;
+                canvas.style.display = 'none';
+                hideAxes();
+                view3d.classList.remove('hidden');
+                view3dBtn.textContent = 'View in 2-D';
+                render3D();
+            }
+
+            function exit3D() {
+                in3D = false;
+                view3d.classList.add('hidden');
+                canvas.style.display = '';
+                view3dBtn.textContent = 'View in 3-D';
+                if (inspectionMode) showAxes();
+            }
+
+            view3dBtn.addEventListener('click', () => { in3D ? exit3D() : enter3D(); });
+
+            scene3d.addEventListener('pointerdown', (e) => {
+                rotating3d = true; lastPx = e.clientX; lastPy = e.clientY;
+                scene3d.setPointerCapture(e.pointerId);
+            });
+            scene3d.addEventListener('pointermove', (e) => {
+                if (!rotating3d) return;
+                yaw += (e.clientX - lastPx) * 0.01;
+                pitch += (e.clientY - lastPy) * 0.01;
+                pitch = Math.max(-1.45, Math.min(1.45, pitch));
+                lastPx = e.clientX; lastPy = e.clientY;
+                render3D();
+            });
+            const endRotate = (e) => { rotating3d = false; try { scene3d.releasePointerCapture(e.pointerId); } catch (_) {} };
+            scene3d.addEventListener('pointerup', endRotate);
+            scene3d.addEventListener('pointercancel', endRotate);
+            scene3d.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                zoom3d = Math.max(0.5, Math.min(3, zoom3d * (e.deltaY < 0 ? 1.1 : 0.9)));
+                render3D();
+            }, { passive: false });
 
             initializeAnimals();
 
@@ -834,6 +1012,7 @@
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
+                    if (in3D) { render3D(); return; } // 2D canvas is hidden; just redraw the scene
                     const canvasWidth = canvas.clientWidth;
                     const canvasHeight = canvas.clientHeight;
 
