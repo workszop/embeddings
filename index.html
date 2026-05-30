@@ -350,6 +350,7 @@
             let isDragging = false;
             let inspectionMode = false;   // true once embeddings have been generated
             let selectedName = null;      // animal currently open in the inspector
+            let justPlacedThisDrag = false; // a shelf animal was placed on canvas during this drag
             const elementsByName = {};    // name -> card element (for neighbor lookups)
             let placedNewAnimalsCount = 0;
             let currentEmbeddingsData = [];
@@ -489,6 +490,7 @@
                 dragStartX = e.clientX;
                 dragStartY = e.clientY;
                 isDragging = false;
+                justPlacedThisDrag = false;
                 // Listen on the document so the drag keeps tracking even after the card is
                 // re-parented onto the canvas (per-element capture isn't reliable mid-reparent).
                 document.addEventListener('pointermove', onPointerMove);
@@ -515,6 +517,7 @@
                         if (!draggedElement.dataset.placedOnCanvas) {
                             placedNewAnimalsCount++;
                             draggedElement.dataset.placedOnCanvas = 'true';
+                            justPlacedThisDrag = true; // first time on canvas → prompt habitat on drop
                         }
                         updateButtonAndStatus();
                     }
@@ -557,6 +560,11 @@
                     if (inspectionMode) {
                         updateEmbeddingFor(el);
                         if (selectedName) drawNeighbors(selectedName); // lines follow the moved card
+                    }
+                    if (justPlacedThisDrag) {
+                        // Newly placed animal → open the inspector so its habitat can be set.
+                        selectAnimal(el.dataset.name);
+                        statusMessage.textContent = `Set ${el.dataset.name}'s habitat in the Inspector →`;
                     }
                 } else {
                     // A tap (no drag) opens the inspector — set habitat anytime, see neighbors after Generate.
