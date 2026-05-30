@@ -21,6 +21,9 @@
             position: relative;
             /* Uniform tile size — wide enough for the longest name ("Clownfish"). */
             width: 6.5rem;
+            /* Keep an intrinsic size in the flex shelf: never grow/shrink/stretch. */
+            flex: none;
+            align-self: center;
             text-align: center;
             white-space: nowrap;
             box-shadow: 0 1px 2px rgba(0,0,0,0.12);
@@ -193,7 +196,7 @@
             <aside class="lg:w-1/3 flex flex-col gap-6 md:gap-8">
                 <section class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
                     <h2 class="text-xl font-semibold mb-4 text-sky-600">New Animals</h2>
-                    <div id="new-animals-shelf" class="flex flex-wrap gap-3 justify-center min-h-[80px] p-2 border border-dashed border-slate-300 rounded-md">
+                    <div id="new-animals-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-[80px] p-2 border border-dashed border-slate-300 rounded-md">
                     </div>
                     <p class="text-xs text-slate-500 mt-2 text-center">Drag these onto the canvas.</p>
                 </section>
