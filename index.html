@@ -405,6 +405,12 @@
                     <p class="text-xs text-slate-500 mt-2" style="font-style:italic;">
                         Here <em>you</em> are the embedding model — in real AI, a neural network learns these numbers from data.
                     </p>
+                    <button id="compare-btn"
+                            style="display:block;width:100%;margin-top:.5rem;background:#e2e8f0;color:#334155;font-weight:600;padding:.5rem 1rem;border-radius:.5rem;border:none;"
+                            class="transition-all hover-bg-slate-300 hidden"
+                            disabled>
+                        View model positions
+                    </button>
                     <button id="reset-btn"
                             style="display:block;width:100%;margin-top:.5rem;background:#e2e8f0;color:#334155;font-weight:600;padding:.5rem 1rem;border-radius:.5rem;border:none;"
                             class="transition-all hover-bg-slate-300">
@@ -457,10 +463,16 @@
                     <h2 class="text-xl font-semibold text-sky-600 mb-1 sm-mb-0">Generated embeddings</h2>
                     <span id="embeddings-meta" class="text-xs text-slate-400"></span>
                 </div>
-                <p class="text-sm text-slate-600 mb-3">
+                <p id="embeddings-desc" class="text-sm text-slate-600 mb-3">
                     Each animal is a 3-D vector <span class="font-mono">[x, y, z]</span> — x&nbsp;=&nbsp;environment, y&nbsp;=&nbsp;size, z&nbsp;=&nbsp;habitat.
                     Click a column to sort, or a row to inspect on the canvas.
                 </p>
+                <div id="compare-notice" class="hidden mb-3 p-3 rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-800">
+                    <strong>Model positions</strong> — vectors computed from 18 biological features
+                    (class, habitat, size, domestication, locomotion…) projected to 3-D via PCA.
+                    Explained variance: PC1 34 %, PC2 22 %, PC3 13 %.
+                    Axes have no simple interpretation — that's the point.
+                </div>
                 <div id="embeddings-empty" class="text-sm text-slate-400 italic py-6 text-center">
                     Place all animals and press "Generate Embeddings" to see their vectors here.
                 </div>
@@ -487,6 +499,7 @@
                     <p>Real embedding models use <strong>hundreds to thousands of dimensions</strong>, not 3. A typical sentence-embedding model produces a vector of 768 or 1 536 numbers.</p>
                     <p>The dimensions are <strong>not interpretable</strong> — there is no "dimension 42 = size." Yet distance still means similarity, exactly as you just saw. That is the core idea.</p>
                     <p>Embeddings power <strong>semantic search</strong> (find documents similar to a query), <strong>recommendation</strong> (find items similar to what you liked), and <strong>RAG</strong> — Retrieval-Augmented Generation — where a language model answers questions using retrieved context.</p>
+                    <p>👉 Press <strong>"View model positions"</strong> in Actions to see where a feature-based model places the same animals, then compare with your canvas.</p>
                 </div>
             </details>
 
@@ -536,10 +549,13 @@
             const neighborsTitle  = document.getElementById('neighbors-title');
             const neighborsList   = document.getElementById('neighbors-list');
 
-            const querySection = document.getElementById('query-section');
-            const queryShelf   = document.getElementById('query-shelf');
-            const bridgePanel  = document.getElementById('bridge-panel');
+            const querySection   = document.getElementById('query-section');
+            const queryShelf     = document.getElementById('query-shelf');
+            const bridgePanel    = document.getElementById('bridge-panel');
             const promptsSection = document.getElementById('prompts-section');
+            const compareBtn     = document.getElementById('compare-btn');
+            const compareNotice  = document.getElementById('compare-notice');
+            const embeddingsDesc = document.getElementById('embeddings-desc');
 
             const axisLabelYTop    = document.getElementById('axis-label-y-top');
             const axisLabelYBottom = document.getElementById('axis-label-y-bottom');
@@ -552,8 +568,25 @@
                 land:  { z: 50 },
                 air:   { z: 88 }
             };
-            const QUERY_NAME    = '❓ Query';
+            const QUERY_NAME     = '❓ Query';
             const NEIGHBOR_COUNT = 3;
+
+            // Precomputed model embeddings: 18 biological features
+            // (class, habitat, size, domestication, locomotion, diet, sociality…)
+            // → StandardScaler → PCA(n=3) → scaled to [5, 95].
+            // Explained variance: PC1 34 %, PC2 22 %, PC3 13 % (total 69 %).
+            const MODEL_EMBEDDINGS = {
+                Whale:     [74, 74, 90], Shark:    [95, 33, 79],
+                Carp:      [91, 44, 16], Goldfish: [88, 43,  5],
+                Elephant:  [33, 93, 48], Squirrel: [33, 82, 50],
+                Horse:     [30, 95, 30], Cow:      [30, 95, 30],
+                Dog:       [29, 88, 63], Cat:      [32, 85, 72],
+                Eagle:     [12, 25, 88], Sparrow:  [ 5,  5, 56],
+                Parrot:    [ 6, 23, 37], Chicken:  [14, 50, 17],
+                Clownfish: [95, 11, 56], Seal:     [60, 68, 95],
+                Goose:     [18, 28, 37], Bat:      [21, 55, 81],
+                Penguin:   [34, 15, 62], Duck:     [18,  8, 50]
+            };
 
             function getZ(el) { const z = parseFloat(el.dataset.z); return isNaN(z) ? 50 : z; }
             function getMedium(z) { return z < 34 ? 'water' : z < 67 ? 'land' : 'air'; }
@@ -592,6 +625,7 @@
             let dragStartX        = 0, dragStartY = 0;
             let isDragging        = false;
             let inspectionMode    = false;
+            let compareMode       = false;  // true = show model positions
             let selectedName      = null;
             let justPlacedThisDrag = false;
             const elementsByName  = {};
@@ -839,15 +873,22 @@
             }
 
             // Returns top NEIGHBOR_COUNT neighbors of `name`.
-            // Works for any animal in elementsByName, including the query card
-            // (which is NOT in currentEmbeddingsData).
+            // In compare mode uses MODEL_EMBEDDINGS vectors; otherwise canvas positions.
+            // Works for both regular animals and the query card (not in currentEmbeddingsData).
             function computeNeighbors(name) {
                 const el = elementsByName[name];
                 if (!el || !currentEmbeddingsData.length) return [];
-                const sv = vectorOf(el);
+                const sv = (compareMode && MODEL_EMBEDDINGS[name])
+                    ? MODEL_EMBEDDINGS[name]
+                    : vectorOf(el);
                 return currentEmbeddingsData
                     .filter(d => d.name !== name)
-                    .map(d => ({ data: d, dist: distance3D(sv, d.vector) }))
+                    .map(d => {
+                        const tv = (compareMode && MODEL_EMBEDDINGS[d.name])
+                            ? MODEL_EMBEDDINGS[d.name]
+                            : d.vector;
+                        return { data: d, dist: distance3D(sv, tv) };
+                    })
                     .sort((a, b) => a.dist - b.dist)
                     .slice(0, NEIGHBOR_COUNT);
             }
@@ -918,8 +959,13 @@
 
             function updateInspector(el) {
                 const c = getAnimalCoordinates(el);
-                inspectorName.textContent   = el.dataset.name;
-                inspectorVector.textContent = `[${c.x}, ${c.y}, ${c.z}]`;
+                inspectorName.textContent = el.dataset.name;
+                if (compareMode && MODEL_EMBEDDINGS[el.dataset.name]) {
+                    const mv = MODEL_EMBEDDINGS[el.dataset.name];
+                    inspectorVector.textContent = `[${mv[0]}, ${mv[1]}, ${mv[2]}] model`;
+                } else {
+                    inspectorVector.textContent = `[${c.x}, ${c.y}, ${c.z}]`;
+                }
                 zSlider.value = Math.round(getZ(el));
                 updateMediumButtons(getMedium(c.z));
 
@@ -938,6 +984,9 @@
                 highlightAnimalElement(el);
                 inspector.classList.remove('hidden');
                 updateInspector(el);
+                // In compare mode, habitat controls are read-only (model chose z)
+                habitatControls.style.opacity = (compareMode && MODEL_EMBEDDINGS[name]) ? '0.4' : '1';
+                habitatControls.style.pointerEvents = (compareMode && MODEL_EMBEDDINGS[name]) ? 'none' : '';
                 if (currentEmbeddingsData.length) {
                     drawNeighbors(name);
                 } else {
@@ -953,6 +1002,8 @@
                 removeAllHighlights();
                 clearNeighbors();
                 highlightTableRow(null);
+                habitatControls.style.opacity = '1';
+                habitatControls.style.pointerEvents = '';
                 if (in3D) render3D();
             }
 
@@ -1014,8 +1065,27 @@
                     currentEmbeddingsData.sort((a, b) => sortDir * a.name.localeCompare(b.name));
                 } else if (activeSortKey in axisIndex) {
                     const i = axisIndex[activeSortKey];
-                    currentEmbeddingsData.sort((a, b) => sortDir * (a.vector[i] - b.vector[i]));
+                    currentEmbeddingsData.sort((a, b) => {
+                        const av = (compareMode && MODEL_EMBEDDINGS[a.name]) ? MODEL_EMBEDDINGS[a.name][i] : a.vector[i];
+                        const bv = (compareMode && MODEL_EMBEDDINGS[b.name]) ? MODEL_EMBEDDINGS[b.name][i] : b.vector[i];
+                        return sortDir * (av - bv);
+                    });
                 }
+
+                // Update column header labels to reflect current mode
+                const ths = embeddingsTable.querySelectorAll('thead .th-sort');
+                const colLabels = compareMode
+                    ? ['Animal', 'PC1', 'PC2', 'PC3']
+                    : ['Animal', 'x', 'y', 'z'];
+                ths.forEach((th, i) => {
+                    const ind = th.querySelector('.sort-ind');
+                    th.childNodes[0].textContent = colLabels[i] + ' ';
+                    if (ind) th.appendChild(ind);
+                });
+
+                // Show/hide compare notice and swap description
+                compareNotice.classList.toggle('hidden', !compareMode);
+                embeddingsDesc.style.display = compareMode ? 'none' : '';
 
                 embeddingsBody.innerHTML = '';
                 currentEmbeddingsData.forEach(data => {
@@ -1035,10 +1105,13 @@
                     nameTd.appendChild(dot); nameTd.appendChild(lbl);
                     tr.appendChild(nameTd);
 
+                    const dispVec = (compareMode && MODEL_EMBEDDINGS[data.name])
+                        ? MODEL_EMBEDDINGS[data.name]
+                        : data.vector;
                     [0, 1, 2].forEach(i => {
                         const td = document.createElement('td');
                         td.style.cssText = 'padding:.375rem .5rem;text-align:right;font-family:"Courier New",monospace;color:#475569;';
-                        td.textContent = data.vector[i];
+                        td.textContent = dispVec[i];
                         tr.appendChild(td);
                     });
 
@@ -1046,7 +1119,8 @@
                     embeddingsBody.appendChild(tr);
                 });
 
-                embeddingsMeta.textContent = `${currentEmbeddingsData.length} animals · click a row to inspect`;
+                const modeLabel = compareMode ? 'model positions' : 'your positions';
+                embeddingsMeta.textContent = `${currentEmbeddingsData.length} animals · ${modeLabel} · click a row to inspect`;
                 updateSortHeaders();
             }
 
@@ -1084,6 +1158,13 @@
                 resetBtn.dataset.confirm = '';
                 resetBtn.textContent = 'Reset';
                 resetBtn.style.cssText = 'display:block;width:100%;margin-top:.5rem;background:#e2e8f0;color:#334155;font-weight:600;padding:.5rem 1rem;border-radius:.5rem;border:none;';
+                compareMode = false;
+                compareBtn.classList.add('hidden');
+                compareBtn.disabled = true;
+                compareBtn.textContent = 'View model positions';
+                compareBtn.style.cssText = 'display:block;width:100%;margin-top:.5rem;background:#e2e8f0;color:#334155;font-weight:600;padding:.5rem 1rem;border-radius:.5rem;border:none;';
+                compareNotice.classList.add('hidden');
+                embeddingsDesc.style.display = '';
 
                 prePlacedAnimalsData.forEach(d => canvas.appendChild(createAnimalElement(d, false)));
                 newAnimalsToPlaceData.forEach(d => newAnimalsShelf.appendChild(createAnimalElement(d, true)));
@@ -1129,7 +1210,9 @@
                 );
                 queryShelf.appendChild(qCard);
 
-                // Reveal bridge panel and prompts
+                // Reveal compare button, bridge panel, and prompts
+                compareBtn.classList.remove('hidden');
+                compareBtn.disabled = false;
                 bridgePanel.classList.remove('hidden');
                 promptsSection.classList.remove('hidden');
 
@@ -1165,6 +1248,26 @@
             inspectorClose.addEventListener('click', closeInspector);
             canvas.addEventListener('pointerdown', e => {
                 if (selectedName && (e.target === canvas || e.target === connectionLines)) closeInspector();
+            });
+
+            // ── Compare mode toggle ───────────────────────────────────
+            compareBtn.addEventListener('click', () => {
+                compareMode = !compareMode;
+                compareBtn.textContent      = compareMode ? 'Your positions'       : 'View model positions';
+                compareBtn.style.background = compareMode ? '#7c3aed'              : '#e2e8f0';
+                compareBtn.style.color      = compareMode ? '#fff'                 : '#334155';
+                // Refresh inspector if open (vector display + controls)
+                if (selectedName) {
+                    const el = elementsByName[selectedName];
+                    if (el) {
+                        updateInspector(el);
+                        habitatControls.style.opacity = (compareMode && MODEL_EMBEDDINGS[selectedName]) ? '0.4' : '1';
+                        habitatControls.style.pointerEvents = (compareMode && MODEL_EMBEDDINGS[selectedName]) ? 'none' : '';
+                    }
+                }
+                displaySortedEmbeddings();
+                if (selectedName) drawNeighbors(selectedName);
+                if (in3D) render3D();
             });
 
             // ── Table sort ────────────────────────────────────────────
@@ -1205,8 +1308,12 @@
                     return { sx: cxC + r.x * scale, sy: cyC - r.y * scale, depth: r.z };
                 };
 
-                // Axes
-                const axes = [
+                // Axes — labels depend on whether we're showing student or model positions
+                const axes = compareMode ? [
+                    { a: [0,50,50], b: [100,50,50], lo: 'PC1−', hi: 'PC1+' },
+                    { a: [50,0,50], b: [50,100,50], lo: 'PC2−', hi: 'PC2+' },
+                    { a: [50,50,0], b: [50,50,100], lo: 'PC3−', hi: 'PC3+' }
+                ] : [
                     { a: [0,50,50], b: [100,50,50], lo: 'wild',  hi: 'domestic' },
                     { a: [50,0,50], b: [50,100,50], lo: 'small', hi: 'large'    },
                     { a: [50,50,0], b: [50,50,100], lo: 'water', hi: 'air'      }
@@ -1223,7 +1330,11 @@
                 });
 
                 const pts = currentEmbeddingsData
-                    .map(d => ({ d, p: proj(d.vector[0], d.vector[1], d.vector[2]) }))
+                    .map(d => {
+                        const v = (compareMode && MODEL_EMBEDDINGS[d.name])
+                            ? MODEL_EMBEDDINGS[d.name] : d.vector;
+                        return { d, p: proj(v[0], v[1], v[2]) };
+                    })
                     .sort((a, b) => a.p.depth - b.p.depth);
 
                 // Draw neighbor lines in 3-D when an animal is selected
@@ -1231,9 +1342,13 @@
                     const neighbors = computeNeighbors(selectedName);
                     const srcData   = currentEmbeddingsData.find(d => d.name === selectedName);
                     if (srcData) {
-                        const fp = proj(srcData.vector[0], srcData.vector[1], srcData.vector[2]);
+                        const sv = (compareMode && MODEL_EMBEDDINGS[srcData.name])
+                            ? MODEL_EMBEDDINGS[srcData.name] : srcData.vector;
+                        const fp = proj(sv[0], sv[1], sv[2]);
                         neighbors.forEach((n, i) => {
-                            const tp = proj(n.data.vector[0], n.data.vector[1], n.data.vector[2]);
+                            const nv = (compareMode && MODEL_EMBEDDINGS[n.data.name])
+                                ? MODEL_EMBEDDINGS[n.data.name] : n.data.vector;
+                            const tp = proj(nv[0], nv[1], nv[2]);
                             ctx.globalAlpha = 1 - i * 0.22;
                             ctx.strokeStyle = '#0ea5e9';
                             ctx.lineWidth = 2;
@@ -1247,16 +1362,24 @@
                 }
 
                 pts.forEach(({ d, p }) => {
+                    const v   = (compareMode && MODEL_EMBEDDINGS[d.name]) ? MODEL_EMBEDDINGS[d.name] : d.vector;
                     const sel = d.name === selectedName;
-                    const r = Math.max(3, (sel ? 6 : 4.5) * (0.7 + (p.depth + 90) / 240));
+                    const r   = Math.max(3, (sel ? 6 : 4.5) * (0.7 + (p.depth + 90) / 240));
                     ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
-                    ctx.fillStyle = habitatColor(d.vector[2]);
+                    ctx.fillStyle = habitatColor(v[2]);
                     ctx.globalAlpha = 0.92; ctx.fill(); ctx.globalAlpha = 1;
                     if (sel) { ctx.lineWidth = 2; ctx.strokeStyle = '#facc15'; ctx.stroke(); }
-                    ctx.fillStyle  = sel ? '#fde68a' : '#e2e8f0';
+                    ctx.fillStyle = sel ? '#fde68a' : '#e2e8f0';
                     ctx.font = (sel ? '600 ' : '') + '11px system-ui, sans-serif';
                     ctx.fillText(d.name, p.sx + r + 3, p.sy + 3);
                 });
+
+                // Mode label at bottom of scene
+                ctx.font = '11px system-ui, sans-serif';
+                ctx.fillStyle = compareMode ? 'rgba(250,204,21,0.85)' : 'rgba(148,163,184,0.7)';
+                ctx.fillText(compareMode
+                    ? 'Model (bio-features → PCA 3-D)'
+                    : 'Your positions', 8, H - 12);
             }
 
             function enter3D() {
