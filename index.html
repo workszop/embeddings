@@ -1092,6 +1092,9 @@
                         selectAnimal(el.dataset.name);
                         if (el.dataset.isQuery === 'true') {
                             statusMessage.textContent = 'Query placed! Its nearest neighbors are your search results.';
+                        } else if (inspectionMode) {
+                            // Embeddings already exist — this animal isn't in the space until a regenerate.
+                            statusMessage.textContent = `${el.dataset.name} added — press "Regenerate embeddings" to include it.`;
                         } else if (el.dataset.isChallenge === 'true') {
                             statusMessage.textContent = `${el.dataset.name} is tricky — where does it really belong? 3 dimensions may not be enough.`;
                         } else {
@@ -1269,15 +1272,16 @@
             }
 
             // ── Status / button gate ──────────────────────────────────
+            // Generate is available at any time: students can embed the
+            // pre-placed animals first, then add more and regenerate.
             function updateButtonAndStatus() {
-                if (inspectionMode) return; // embeddings already generated; gate doesn't apply
+                if (inspectionMode) return; // after first generate, the regenerate flow drives status
+                generateEmbeddingsBtn.disabled = false;
                 const remaining = newAnimalsToPlaceData.length - placedNewAnimalsCount;
-                if (remaining === 0) {
-                    generateEmbeddingsBtn.disabled = false;
-                    statusMessage.textContent = 'All animals placed! Ready to generate.';
+                if (remaining > 0) {
+                    statusMessage.textContent = `Generate now, or drag ${remaining} more animal${remaining > 1 ? 's' : ''} on first.`;
                 } else {
-                    generateEmbeddingsBtn.disabled = true;
-                    statusMessage.textContent = `Place ${remaining} more animal${remaining > 1 ? 's' : ''}.`;
+                    statusMessage.textContent = 'All animals placed — generate embeddings.';
                 }
             }
 
@@ -1416,6 +1420,10 @@
 
             // ── Generate ──────────────────────────────────────────────
             generateEmbeddingsBtn.addEventListener('click', () => {
+                const firstTime = !inspectionMode;
+
+                // (Re)build the embedding set from whatever is on the canvas now,
+                // so animals added after the first generate get picked up.
                 currentEmbeddingsData = [];
                 canvas.querySelectorAll('.animal-card').forEach(el => {
                     if (el.dataset.isQuery === 'true') return; // query card excluded
@@ -1436,27 +1444,31 @@
 
                 showAxes();
                 inspectionMode = true;
-                setBtnLabel(generateEmbeddingsBtn, 'Embeddings generated', '#i-check');
-                generateEmbeddingsBtn.classList.remove('btn-primary');
-                generateEmbeddingsBtn.classList.add('btn-success');
-                generateEmbeddingsBtn.disabled = true;
                 view3dBtn.disabled = false;
-                statusMessage.textContent = 'Tap an animal to see neighbors, then try the search query.';
 
-                // Reveal query card
-                querySection.classList.remove('hidden');
-                queryShelf.innerHTML = '';
-                const qCard = createAnimalElement(
-                    { id: 'query-card', name: QUERY_NAME, z: 50, color: 'bg-yellow-400', textColor: 'text-black', isQuery: true },
-                    true
-                );
-                queryShelf.appendChild(qCard);
+                // The button becomes a re-runnable "Regenerate" so newly placed
+                // animals can be folded in at any point.
+                setBtnLabel(generateEmbeddingsBtn, 'Regenerate embeddings', '#i-refresh');
+                generateEmbeddingsBtn.classList.remove('btn-success');
+                generateEmbeddingsBtn.classList.add('btn-primary');
+                generateEmbeddingsBtn.disabled = false;
 
-                // Reveal compare button, bridge panel, and prompts
-                compareBtn.classList.remove('hidden');
-                compareBtn.disabled = false;
-                bridgePanel.classList.remove('hidden');
-                promptsSection.classList.remove('hidden');
+                if (firstTime) {
+                    // One-time reveal of the query card, compare toggle, bridge & prompts.
+                    querySection.classList.remove('hidden');
+                    queryShelf.innerHTML = '';
+                    queryShelf.appendChild(createAnimalElement(
+                        { id: 'query-card', name: QUERY_NAME, z: 50, color: 'bg-yellow-400', textColor: 'text-black', isQuery: true },
+                        true
+                    ));
+                    compareBtn.classList.remove('hidden');
+                    compareBtn.disabled = false;
+                    bridgePanel.classList.remove('hidden');
+                    promptsSection.classList.remove('hidden');
+                    statusMessage.textContent = 'Tap an animal to see neighbors, then try the search query.';
+                } else {
+                    statusMessage.textContent = `Embeddings updated — ${currentEmbeddingsData.length} animals now in the space.`;
+                }
 
                 if (selectedName) drawNeighbors(selectedName);
             });
