@@ -504,14 +504,44 @@
         #embeddings-table thead th { font-size: .72rem; }
         .font-mono, #inspector-vector, #embeddings-table td { font-variant-numeric: tabular-nums; }
 
-        /* ── Animated bridge-panel chevron ───────────────────────── */
-        details.bridge-panel summary { display: flex; align-items: center; gap: .55rem; font-size: .95rem; }
-        details.bridge-panel summary::before {
-            content: ''; width: 0; height: 0; display: inline-block;
-            border-left: 6px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent;
-            transition: transform .2s ease;
+        /* ── "Real embedding" fingerprint widget ─────────────────── */
+        .fp-grid { display: flex; flex-direction: column; gap: .6rem; }
+        .fp-row { display: flex; align-items: center; gap: .75rem; }
+        .fp-head { width: 7.5rem; flex: none; }
+        .fp-select {
+            width: 100%; font-size: .85rem; font-weight: 600; color: var(--ink-soft);
+            padding: .4rem .5rem; border-radius: .55rem; border: 1px solid var(--line);
+            background: #fff; cursor: pointer;
         }
-        details.bridge-panel[open] summary::before { transform: rotate(90deg); }
+        .fp-select:hover { border-color: #cbd5e1; }
+        .fp-strip {
+            flex: 1 1 auto; width: 100%; height: 34px; border-radius: .5rem;
+            border: 1px solid var(--line); cursor: crosshair; display: block;
+        }
+        .fp-tooltip {
+            display: none; margin-top: .4rem; font-family: 'Courier New', monospace;
+            font-size: .75rem; color: var(--ink-mute);
+        }
+        .fp-tooltip.show { display: block; }
+        .fp-sim { margin-top: 1rem; }
+        .fp-sim-track {
+            height: 12px; border-radius: 999px; overflow: hidden;
+            background: #eef2f7; border: 1px solid var(--line);
+        }
+        .fp-sim-fill {
+            height: 100%; width: 0%; border-radius: 999px;
+            background: linear-gradient(90deg, #f59e0b, #22c55e);
+            transition: width .35s ease;
+        }
+        .fp-sim-verdict { margin-top: .4rem; font-size: .9rem; font-weight: 650; }
+        .fp-callouts { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+        .fp-chip {
+            display: inline-flex; align-items: center; gap: .35rem;
+            font-size: .78rem; font-weight: 600; color: var(--ink-soft);
+            background: #f1f5f9; border: 1px solid var(--line);
+            padding: .35rem .65rem; border-radius: 999px;
+        }
+        .fp-chip .icon-inline { width: 14px; height: 14px; color: var(--brand); }
 
         @media (prefers-reduced-motion: reduce) {
             * { transition: none !important; }
@@ -714,17 +744,47 @@
                 </div>
             </section>
 
-            <!-- Bridge to real AI (revealed after generate) -->
-            <details id="bridge-panel" class="bridge-panel hidden bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <summary class="font-semibold text-amber-800">How real AI embeddings differ from this demo</summary>
-                <div class="mt-3 text-sm text-slate-700 space-y-2">
-                    <p>In this demo <em>you</em> chose where each animal sits. In a real AI system a <strong>neural network</strong> learns those numbers automatically from millions of examples — the model figures out which positions minimise prediction error.</p>
-                    <p>Real embedding models use <strong>hundreds to thousands of dimensions</strong>, not 3. A typical sentence-embedding model produces a vector of 768 or 1 536 numbers.</p>
-                    <p>The dimensions are <strong>not interpretable</strong> — there is no "dimension 42 = size." Yet distance still means similarity, exactly as you just saw. That is the core idea.</p>
-                    <p>Embeddings power <strong>semantic search</strong> (find documents similar to a query), <strong>recommendation</strong> (find items similar to what you liked), and <strong>RAG</strong> — Retrieval-Augmented Generation — where a language model answers questions using retrieved context.</p>
-                    <p><svg class="icon-inline" style="color:#0284c7"><use href="#i-arrow-r"></use></svg> Press <strong>"View model positions"</strong> in Actions to see where a feature-based model places the same animals, then compare with your canvas.</p>
+            <!-- Interactive "real embedding" widget (revealed after generate) -->
+            <section id="bridge-panel" class="hidden bg-white p-4 sm-p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-semibold text-sky-600 mb-1 sec-title">What a real embedding looks like</h2>
+                <p class="text-sm text-slate-600 mb-3">
+                    You gave each animal <strong>3</strong> numbers. A real model gives it a long list — here are <strong>48</strong>.
+                    Pick two animals and compare their <em>fingerprints</em>: similar meaning makes a similar pattern.
+                </p>
+
+                <div class="fp-grid">
+                    <div class="fp-row">
+                        <div class="fp-head">
+                            <select id="fp-a" class="fp-select" aria-label="First animal"></select>
+                        </div>
+                        <canvas id="fp-canvas-a" class="fp-strip" height="34"></canvas>
+                    </div>
+                    <div class="fp-row">
+                        <div class="fp-head">
+                            <select id="fp-b" class="fp-select" aria-label="Second animal"></select>
+                        </div>
+                        <canvas id="fp-canvas-b" class="fp-strip" height="34"></canvas>
+                    </div>
                 </div>
-            </details>
+
+                <div id="fp-tooltip" class="fp-tooltip"></div>
+
+                <div class="fp-sim">
+                    <div class="fp-sim-track"><div id="fp-sim-fill" class="fp-sim-fill"></div></div>
+                    <div id="fp-sim-verdict" class="fp-sim-verdict"></div>
+                </div>
+
+                <div class="fp-callouts">
+                    <span class="fp-chip"><svg class="icon-inline"><use href="#i-layers"></use></svg>48 dimensions, not 3</span>
+                    <span class="fp-chip"><svg class="icon-inline"><use href="#i-search"></use></svg>no dimension has a name</span>
+                    <span class="fp-chip"><svg class="icon-inline"><use href="#i-sparkle"></use></svg>similar meaning → similar pattern</span>
+                </div>
+
+                <p class="text-xs text-slate-500 mt-3">
+                    A real model learns these numbers from data — nobody labels them. The 3-D
+                    <strong>"View model positions"</strong> view is just this long fingerprint squashed down to 3 numbers so it can be plotted.
+                </p>
+            </section>
 
             <!-- Discussion prompts (revealed after generate) -->
             <section id="prompts-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
@@ -779,6 +839,14 @@
             const compareBtn     = document.getElementById('compare-btn');
             const compareNotice  = document.getElementById('compare-notice');
             const embeddingsDesc = document.getElementById('embeddings-desc');
+            const fpSelectA  = document.getElementById('fp-a');
+            const fpSelectB  = document.getElementById('fp-b');
+            const fpCanvasA  = document.getElementById('fp-canvas-a');
+            const fpCanvasB  = document.getElementById('fp-canvas-b');
+            const fpTooltip  = document.getElementById('fp-tooltip');
+            const fpSimFill  = document.getElementById('fp-sim-fill');
+            const fpSimVerdict = document.getElementById('fp-sim-verdict');
+            let fpInitialized = false;
 
             const axisLabelYTop    = document.getElementById('axis-label-y-top');
             const axisLabelYBottom = document.getElementById('axis-label-y-bottom');
@@ -810,6 +878,34 @@
                 Goose:     [18, 28, 37], Bat:      [21, 55, 81],
                 Penguin:   [34, 15, 62], Duck:     [18,  8, 50]
             };
+
+            // High-dimensional "fingerprints": 48 numbers per animal, built from the
+            // same biological features via a fixed random projection (Johnson–Lindenstrauss),
+            // z-scored per dimension. Used by the interactive "real embedding" widget —
+            // similar animals get similar fingerprints, and no dimension has a human meaning.
+            const FINGERPRINTS = {
+                Whale:     [-22,-41,4,15,72,-77,-47,-31,-20,16,-81,38,22,-11,33,-51,20,-7,50,99,46,-27,19,97,14,7,-84,-48,-28,-83,-17,8,99,-17,-65,-48,64,52,-76,-42,-46,36,14,-13,-87,35,3,-49],
+                Shark:     [-20,-8,-73,-39,-22,8,-62,-50,-81,-44,-36,62,69,-14,30,-77,19,-18,21,-16,-12,66,83,70,99,33,2,-27,-42,-74,92,37,17,81,27,1,70,16,-33,-27,68,77,-75,58,-27,-22,81,-8],
+                Carp:      [-7,-41,-28,18,-38,-13,13,-40,-11,-35,49,36,41,59,-5,-54,73,-28,31,0,-16,-50,10,-12,-17,-58,-26,-52,-19,-12,25,58,15,50,-44,74,-24,23,-18,12,50,51,-4,27,-51,52,52,-10],
+                Goldfish:  [-12,-37,-6,22,-68,29,17,-38,-1,-48,61,46,19,75,-10,-41,67,0,44,-16,-22,-66,-7,-19,-36,-59,-24,-65,-21,20,10,62,9,62,-59,85,-33,25,16,46,63,31,-1,14,-39,70,31,-11],
+                Elephant:  [62,34,-18,24,23,-86,25,-37,23,61,-26,-33,-6,9,-39,-3,26,-47,-57,52,-3,7,-22,-12,1,-3,13,-3,-19,6,17,-2,20,-44,8,2,-32,29,-70,-18,-42,17,17,-14,-38,8,-6,-44],
+                Squirrel:  [89,62,-36,14,-47,-8,22,-37,5,58,-9,-21,-28,35,-85,-30,38,5,-56,11,-70,16,-31,-3,10,10,13,16,-46,37,17,41,-23,-14,-4,-46,-73,-10,-9,-37,32,33,-27,0,41,15,3,-5],
+                Horse:     [48,40,21,34,-26,-40,30,-31,45,33,-21,-2,-40,34,-39,20,14,-6,-33,40,-4,-6,-47,-21,-20,1,24,-34,-22,60,-5,-10,16,-22,-8,35,-31,42,-27,48,-32,-27,44,-33,-24,37,-49,-54],
+                Cow:       [48,40,21,34,-26,-40,30,-31,45,33,-21,-2,-40,34,-39,20,14,-6,-33,40,-4,-6,-47,-21,-20,1,24,-34,-22,60,-5,-10,16,-22,-8,35,-31,42,-27,48,-32,-27,44,-33,-24,37,-49,-54],
+                Dog:       [28,48,22,9,-10,54,3,-3,25,25,-26,-13,-81,18,-17,15,-29,57,-2,-5,29,-33,-56,31,-46,58,-6,-19,-26,27,-50,-28,39,-23,2,-11,-6,39,24,66,-16,-21,-5,-79,10,32,-52,-56],
+                Cat:       [47,74,-4,2,-55,49,-7,0,11,16,-54,22,-77,26,-40,-20,-18,75,-8,-1,-14,20,-43,52,3,82,9,-10,-52,37,-32,-22,13,2,27,-33,-5,19,31,45,21,-19,-4,-48,67,22,-42,-37],
+                Eagle:     [-23,20,-63,-99,28,40,-83,21,-5,8,-53,5,27,-71,-9,2,-25,-40,-44,-74,8,99,63,58,88,77,36,55,-12,-18,21,-52,-50,43,66,-47,48,-69,33,-51,34,5,-15,64,41,-68,-6,42],
+                Sparrow:   [-33,-44,-35,-51,48,-2,8,54,7,-25,49,-12,30,-73,11,58,-65,-11,4,-65,-4,8,43,-33,16,-13,48,56,67,-21,26,-2,-52,18,58,-26,-34,-79,30,-22,-1,-40,-51,39,-28,-79,1,60],
+                Parrot:    [-41,-43,-10,-16,24,-59,39,99,63,-57,23,43,-6,-28,15,38,-51,20,39,-15,25,-12,-1,-25,-22,-1,37,21,61,7,-46,-61,-28,13,78,41,-27,-54,26,43,-26,-99,66,13,4,-36,-40,35],
+                Chicken:   [-5,-9,39,-15,-23,19,12,10,45,13,11,-9,-20,11,-24,17,14,-43,-24,2,27,15,-12,-9,-24,-24,22,-2,9,57,-34,-66,-40,-18,-25,50,-4,-20,1,14,-15,-19,78,25,37,14,-60,21],
+                Clownfish: [-36,-9,-7,58,-47,13,54,30,-76,-77,64,-39,41,33,62,-63,18,71,84,-4,-99,-42,14,-41,28,-27,-51,-14,35,-26,66,88,-28,26,49,19,-20,11,-15,-62,67,38,-83,18,17,-19,77,44],
+                Seal:      [-47,40,77,52,51,39,-60,-16,-49,47,-10,-95,-16,5,60,4,-21,27,9,-6,17,-44,-36,6,-69,6,-90,-41,-13,6,-31,20,64,-48,-34,-25,63,48,-12,-52,-58,29,-1,-47,-16,23,-2,-26],
+                Goose:     [-16,-27,9,-50,16,31,-34,-25,8,12,7,-15,48,-38,-11,54,4,-88,-54,-31,18,53,47,-31,28,-35,44,41,15,17,27,-7,-47,11,-49,-17,25,-37,26,-10,-2,1,20,59,3,-23,1,35],
+                Bat:       [24,-6,-27,-36,45,2,-42,35,43,32,1,25,-27,-21,-4,26,29,46,-36,-45,73,-8,-39,4,-28,35,-19,46,-13,-37,-87,-21,3,1,-6,-23,-25,-40,99,7,6,-27,-9,-59,44,-8,14,12],
+                Penguin:   [-50,-33,93,48,38,25,64,52,-54,-23,37,-77,17,-29,83,24,-51,1,38,44,0,-14,14,-58,-19,-50,-26,65,87,-35,-9,-26,-26,-98,-13,-35,54,7,-29,-41,-54,5,11,-14,66,-41,29,59],
+                Duck:      [-36,-59,20,-22,18,16,21,32,-20,-47,35,41,27,-56,29,57,-78,-6,27,-15,29,19,49,-33,9,-38,54,50,63,-27,16,-7,-28,-2,-2,-33,19,-41,23,32,-19,-39,-19,22,3,-52,16,48],
+            };
+            const FP_DIMS = 48;
 
             function getZ(el) { const z = parseFloat(el.dataset.z); return isNaN(z) ? 50 : z; }
             function getMedium(z) { return z < 34 ? 'water' : z < 67 ? 'land' : 'air'; }
@@ -1366,6 +1462,81 @@
                 updateSortHeaders();
             }
 
+            // ── "Real embedding" fingerprint widget ───────────────────
+            function fpLerp(c1, c2, t) {
+                return [0,1,2].map(i => Math.round(c1[i] + (c2[i] - c1[i]) * t));
+            }
+            // Diverging palette: blue (negative) → near-white (0) → red (positive).
+            function fpColor(v) {
+                const t = Math.max(-1, Math.min(1, v / 100));
+                const mid = [248, 250, 252];
+                const rgb = t < 0 ? fpLerp(mid, [37, 99, 235], -t)
+                                  : fpLerp(mid, [220, 38, 38], t);
+                return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+            }
+            function drawFingerprint(cv, name) {
+                const vec = FINGERPRINTS[name];
+                if (!vec) return;
+                const dpr = window.devicePixelRatio || 1;
+                const W = cv.clientWidth || 480, H = cv.clientHeight || 34;
+                cv.width = W * dpr; cv.height = H * dpr;
+                const ctx = cv.getContext('2d');
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, W, H);
+                const cw = W / FP_DIMS;
+                vec.forEach((v, i) => {
+                    ctx.fillStyle = fpColor(v);
+                    ctx.fillRect(i * cw, 0, Math.ceil(cw) + 0.5, H);
+                });
+            }
+            function fpCosine(a, b) {
+                let dot = 0, na = 0, nb = 0;
+                for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+                return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
+            }
+            function renderFingerprints() {
+                const a = fpSelectA.value, b = fpSelectB.value;
+                if (!a || !b) return;
+                drawFingerprint(fpCanvasA, a);
+                drawFingerprint(fpCanvasB, b);
+                const sim = (a === b) ? 1 : fpCosine(FINGERPRINTS[a], FINGERPRINTS[b]);
+                const pct = Math.round(Math.max(0, sim) * 100);
+                fpSimFill.style.width = pct + '%';
+                let text, color;
+                if (a === b)        { text = 'Same animal — identical fingerprint.'; color = '#16a34a'; }
+                else if (sim > 0.6) { text = `Very similar (${pct}%) — they'd be neighbors in a real model.`; color = '#16a34a'; }
+                else if (sim > 0.3) { text = `Somewhat similar (${pct}%) — partly overlapping meaning.`; color = '#ca8a04'; }
+                else                { text = `Quite different (${pct}%) — far apart in the space.`; color = '#dc2626'; }
+                fpSimVerdict.textContent = text;
+                fpSimVerdict.style.color = color;
+            }
+            function fpHover(cv, name) {
+                cv.addEventListener('mousemove', e => {
+                    const rect = cv.getBoundingClientRect();
+                    const i = Math.max(0, Math.min(FP_DIMS - 1, Math.floor((e.clientX - rect.left) / rect.width * FP_DIMS)));
+                    const v = FINGERPRINTS[cv === fpCanvasA ? fpSelectA.value : fpSelectB.value][i];
+                    fpTooltip.textContent = `dimension ${i} = ${v}  ·  (a learned number — no human meaning)`;
+                    fpTooltip.classList.add('show');
+                });
+                cv.addEventListener('mouseleave', () => fpTooltip.classList.remove('show'));
+            }
+            function setupFingerprintWidget() {
+                if (!fpInitialized) {
+                    const names = Object.keys(FINGERPRINTS).sort();
+                    const opts = names.map(n => `<option value="${n}">${n}</option>`).join('');
+                    fpSelectA.innerHTML = opts;
+                    fpSelectB.innerHTML = opts;
+                    fpSelectA.value = 'Cat';
+                    fpSelectB.value = 'Dog';
+                    fpSelectA.addEventListener('change', renderFingerprints);
+                    fpSelectB.addEventListener('change', renderFingerprints);
+                    fpHover(fpCanvasA);
+                    fpHover(fpCanvasB);
+                    fpInitialized = true;
+                }
+                renderFingerprints();
+            }
+
             // ── Init / reset ──────────────────────────────────────────
             function initializeAnimals() {
                 canvas.querySelectorAll('.animal-card, .axis-tick, .tick-label').forEach(el => el.remove());
@@ -1465,6 +1636,7 @@
                     compareBtn.disabled = false;
                     bridgePanel.classList.remove('hidden');
                     promptsSection.classList.remove('hidden');
+                    setupFingerprintWidget(); // panel is now visible → canvas has width
                     statusMessage.textContent = 'Tap an animal to see neighbors, then try the search query.';
                 } else {
                     statusMessage.textContent = `Embeddings updated — ${currentEmbeddingsData.length} animals now in the space.`;
@@ -1699,6 +1871,7 @@
                     });
                     if (inspectionMode) addAxisTicks();
                     if (selectedName) drawNeighbors(selectedName);
+                    if (fpInitialized && !bridgePanel.classList.contains('hidden')) renderFingerprints();
                 }, 250);
             });
 
