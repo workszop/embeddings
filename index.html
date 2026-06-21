@@ -6,23 +6,83 @@
     <title>Animal Embedding Demo</title>
     <style>
         /* ============================================================
+           edulab — Editorial Color design tokens (injected by edustyl)
+           Source of truth: edulab design system (colors_and_type.css)
+        ============================================================ */
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+        :root {
+            /* Brand fonts */
+            --font-display: 'Bricolage Grotesque', 'Hanken Grotesk', system-ui, sans-serif;
+            --font-sans:    'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+            --font-mono:    'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+            /* Paper / ink */
+            --paper:#FBF7F0; --paper-2:#F4EDDF; --paper-3:#ECE1CF; --surface:#FFFFFF;
+            --ink:#211E1A; --ink-2:#5B554D; --ink-3:#938A7C;
+            --line:#E7DCCB; --line-2:#D6C8B2;
+            /* Brand */
+            --marigold:#E8920C; --marigold-600:#CE800A; --marigold-soft:#FBE7C2; --marigold-ink:#8A4F00;
+            --teal:#0E8C7F; --teal-600:#0B7468; --teal-soft:#D2EBE6; --teal-ink:#0A5A52;
+            --coral:#EF5B3F; --coral-600:#D44A30; --coral-soft:#FBDDD4; --coral-ink:#9A2E1B;
+            --sky:#2E78C9; --sky-soft:#D9E7F6; --sky-ink:#1B4E88;
+            /* Play / subject palette */
+            --play-sun:#F2A516; --play-grass:#4FA45C; --play-berry:#C6478B;
+            --play-grape:#7A5AC2; --play-grape-600:#6A4BAF; --play-sky:#2E78C9; --play-coral:#EF5B3F;
+            /* Semantic */
+            --success:#2F8F5B; --success-soft:#D7EEDD; --success-ink:#1C6A3E;
+            --warning:#C9810A; --warning-soft:#FBEAC6; --warning-ink:#855207;
+            --danger:#D8412A;  --danger-soft:#FAD9D2;  --danger-ink:#97271A;
+            --focus-ring: 0 0 0 3px rgba(232,146,12,.38);
+            /* Radii (friendly, generous) */
+            --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-pill:999px;
+            /* Elevation — warm, low, soft */
+            --shadow-sm: 0 1px 2px rgba(33,30,26,.06), 0 1px 1px rgba(33,30,26,.04);
+            --shadow-md: 0 4px 16px rgba(33,30,26,.08), 0 1px 3px rgba(33,30,26,.05);
+            --shadow-lg: 0 16px 40px rgba(33,30,26,.12), 0 3px 8px rgba(33,30,26,.06);
+            --shadow-marigold: 0 8px 22px rgba(232,146,12,.28);
+        }
+
+        /* ============================================================
            BASE
         ============================================================ */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-            background-color: #f1f5f9;
-            color: #1e293b;
+            font-family: var(--font-sans);
+            background-color: var(--paper);
+            color: var(--ink);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 1rem;
+            padding: 0;
             overscroll-behavior: none;
         }
-        ::selection { background-color: #bae6fd; }
+        h1, h2, h3 { font-family: var(--font-display); }
+        ::selection { background-color: var(--marigold-soft); }
+
+        /* edulab branded top menu (shared across edulab apps) */
+        .edu-header {
+            position: sticky; top: 0; z-index: 50; width: 100%;
+            background: rgba(251, 247, 240, 0.85);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--line);
+        }
+        .edu-header-inner {
+            max-width: 1100px; margin: 0 auto;
+            padding: 15px 30px; display: flex; align-items: center; gap: 12px;
+        }
+        .edu-logo { width: 32px; height: 32px; display: block; }
+        .edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); line-height: 1; }
+        .edu-tag {
+            font-family: var(--font-mono); font-weight: 500; font-size: 11px;
+            letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal-ink);
+            background: var(--teal-soft); padding: 4px 9px; border-radius: var(--r-pill);
+        }
+        /* page content gets its own padding now that body sits flush under the bar */
+        .edu-page { width: 100%; max-width: 1100px; padding: 44px 24px 72px; }
+        @media (min-width: 768px) { .edu-page { padding: 64px 30px 88px; } }
+        .edu-hero { margin-bottom: 3rem; }
         h1, h2, h3 { letter-spacing: -0.01em; }
-        @media (min-width: 768px) { body { padding: 2rem; } }
+        @media (min-width: 768px) { body { padding: 0; } }
 
         /* ============================================================
            LAYOUT UTILITIES
@@ -120,53 +180,53 @@
         /* ============================================================
            COLOURS — backgrounds
         ============================================================ */
-        .bg-white    { background-color: #ffffff; }
-        .bg-slate-100{ background-color: #f1f5f9; }
-        .bg-slate-200{ background-color: #e2e8f0; }
-        .bg-slate-900{ background-color: #0f172a; }
-        .bg-sky-50   { background-color: #f0f9ff; }
-        .bg-sky-500  { background-color: #0ea5e9; }
-        /* animal palette */
-        .bg-blue-600    { background-color: #2563eb; }
-        .bg-slate-600   { background-color: #475569; }
-        .bg-orange-400  { background-color: #fb923c; }
-        .bg-slate-500   { background-color: #64748b; }
-        .bg-amber-600   { background-color: #d97706; }
-        .bg-yellow-700  { background-color: #a16207; }
-        .bg-neutral-400 { background-color: #a3a3a3; }
-        .bg-green-600   { background-color: #16a34a; }
-        .bg-teal-500    { background-color: #14b8a6; }
-        .bg-amber-800   { background-color: #92400e; }
-        .bg-stone-400   { background-color: #a8a29e; }
-        .bg-red-500     { background-color: #ef4444; }
-        .bg-red-400     { background-color: #f87171; }
-        .bg-orange-500  { background-color: #f97316; }
-        .bg-stone-500   { background-color: #78716c; }
-        .bg-gray-300    { background-color: #d1d5db; }
-        .bg-purple-800  { background-color: #6b21a8; }
+        .bg-white    { background-color: var(--surface); }
+        .bg-slate-100{ background-color: var(--paper-2); }
+        .bg-slate-200{ background-color: var(--paper-3); }
+        .bg-slate-900{ background-color: var(--ink); }
+        .bg-sky-50   { background-color: var(--sky-soft); }
+        .bg-sky-500  { background-color: var(--sky); }
+        /* animal palette — mapped to the edulab play/brand palette (kept distinguishable) */
+        .bg-blue-600    { background-color: var(--sky); }
+        .bg-slate-600   { background-color: var(--ink-2); }
+        .bg-orange-400  { background-color: var(--play-sun); }
+        .bg-slate-500   { background-color: var(--ink-3); }
+        .bg-amber-600   { background-color: var(--marigold); }
+        .bg-yellow-700  { background-color: var(--marigold-600); }
+        .bg-neutral-400 { background-color: #B8A794; }
+        .bg-green-600   { background-color: var(--play-grass); }
+        .bg-teal-500    { background-color: var(--teal); }
+        .bg-amber-800   { background-color: var(--marigold-ink); }
+        .bg-stone-400   { background-color: #C2B39E; }
+        .bg-red-500     { background-color: var(--coral); }
+        .bg-red-400     { background-color: #F2795F; }
+        .bg-orange-500  { background-color: var(--play-coral); }
+        .bg-stone-500   { background-color: var(--ink-2); }
+        .bg-gray-300    { background-color: var(--line-2); }
+        .bg-purple-800  { background-color: var(--play-grape-600); }
         /* challenge / query / UI */
-        .bg-gray-800    { background-color: #1f2937; }
-        .bg-yellow-500  { background-color: #eab308; }
-        .bg-yellow-400  { background-color: #facc15; }
-        .bg-amber-50    { background-color: #fffbeb; }
-        .bg-emerald-50  { background-color: #ecfdf5; }
-        .bg-slate-50    { background-color: #f8fafc; }
+        .bg-gray-800    { background-color: var(--ink); }
+        .bg-yellow-500  { background-color: var(--marigold); }
+        .bg-yellow-400  { background-color: var(--play-sun); }
+        .bg-amber-50    { background-color: var(--marigold-soft); }
+        .bg-emerald-50  { background-color: var(--teal-soft); }
+        .bg-slate-50    { background-color: var(--paper); }
 
         /* ============================================================
            COLOURS — text
         ============================================================ */
         .text-white    { color: #ffffff; }
-        .text-black    { color: #000000; }
-        .text-slate-800{ color: #1e293b; }
-        .text-slate-700{ color: #334155; }
-        .text-slate-600{ color: #475569; }
-        .text-slate-500{ color: #64748b; }
-        .text-slate-400{ color: #94a3b8; }
-        .text-slate-300{ color: #cbd5e1; }
-        .text-sky-700  { color: #0369a1; }
-        .text-sky-600  { color: #0284c7; }
-        .text-amber-800{ color: #92400e; }
-        .text-emerald-700 { color: #047857; }
+        .text-black    { color: var(--ink); }
+        .text-slate-800{ color: var(--ink); }
+        .text-slate-700{ color: var(--ink); }
+        .text-slate-600{ color: var(--ink-2); }
+        .text-slate-500{ color: var(--ink-3); }
+        .text-slate-400{ color: var(--ink-3); }
+        .text-slate-300{ color: var(--line-2); }
+        .text-sky-700  { color: var(--teal-ink); }
+        .text-sky-600  { color: var(--teal); }
+        .text-amber-800{ color: var(--marigold-ink); }
+        .text-emerald-700 { color: var(--success-ink); }
 
         /* ============================================================
            TYPOGRAPHY
@@ -182,7 +242,7 @@
         .font-medium  { font-weight: 500; }
         .font-semibold{ font-weight: 600; }
         .font-bold    { font-weight: 700; }
-        .font-mono    { font-family: 'Courier New', monospace; }
+        .font-mono    { font-family: var(--font-mono); }
         .leading-none { line-height: 1; }
         .space-y-0_5 > * + * { margin-top: 0.125rem; }
         .space-y-1   > * + * { margin-top: 0.25rem; }
@@ -200,13 +260,13 @@
         .border-dashed  { border-style: dashed; }
         .border-b       { border-bottom: 1px solid; }
         .border-collapse{ border-collapse: collapse; }
-        .border-slate-100 { border-color: #f1f5f9; }
-        .border-slate-200 { border-color: #e2e8f0; }
-        .border-slate-300 { border-color: #cbd5e1; }
-        .border-slate-700 { border-color: #334155; }
-        .border-sky-200   { border-color: #bae6fd; }
-        .border-amber-200 { border-color: #fde68a; }
-        .border-emerald-200 { border-color: #a7f3d0; }
+        .border-slate-100 { border-color: var(--paper-2); }
+        .border-slate-200 { border-color: var(--line); }
+        .border-slate-300 { border-color: var(--line-2); }
+        .border-slate-700 { border-color: var(--ink-2); }
+        .border-sky-200   { border-color: var(--sky-soft); }
+        .border-amber-200 { border-color: var(--marigold-soft); }
+        .border-emerald-200 { border-color: var(--teal-soft); }
         .rounded-md { border-radius: 0.375rem; }
         .rounded-lg { border-radius: 0.5rem; }
         .rounded-xl { border-radius: 0.75rem; }
@@ -215,9 +275,9 @@
         /* ============================================================
            SHADOWS
         ============================================================ */
-        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1); }
-        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1); }
-        .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(33,30,26,.1), 0 4px 6px -4px rgba(33,30,26,.1); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(33,30,26,.1), 0 2px 4px -2px rgba(33,30,26,.1); }
+        .shadow-sm { box-shadow: 0 1px 2px rgba(33,30,26,.05); }
 
         /* ============================================================
            TRANSITIONS
@@ -228,14 +288,14 @@
         /* ============================================================
            INTERACTIVE
         ============================================================ */
-        .hover-bg-slate-50:hover  { background-color: #f8fafc; }
-        .hover-bg-slate-200:hover { background-color: #e2e8f0; }
-        .hover-bg-slate-300:hover { background-color: #cbd5e1; }
-        .hover-bg-sky-600:hover   { background-color: #0284c7; }
-        .hover-text-slate-600:hover { color: #475569; }
+        .hover-bg-slate-50:hover  { background-color: var(--paper-2); }
+        .hover-bg-slate-200:hover { background-color: var(--paper-3); }
+        .hover-bg-slate-300:hover { background-color: var(--line-2); }
+        .hover-bg-sky-600:hover   { background-color: var(--teal); }
+        .hover-text-slate-600:hover { color: var(--ink-2); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-        button:focus    { outline: 2px solid #38bdf8; outline-offset: 2px; }
-        .accent-sky { accent-color: #0ea5e9; }
+        button:focus    { outline: none; box-shadow: var(--focus-ring); outline-offset: 2px; }
+        .accent-sky { accent-color: var(--marigold); }
 
         /* ============================================================
            COMPONENTS
@@ -247,7 +307,7 @@
             align-self: center;
             text-align: center;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,.12);
+            box-shadow: 0 1px 2px rgba(33,30,26,.12);
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
@@ -261,20 +321,22 @@
             .animal-card { padding: 0.5rem 0.75rem; }
         }
         .animal-card.dragging   { z-index: 1000; opacity: .6; transform: scale(1.05); }
-        .animal-card.highlighted{ outline: 3px solid #facc15; outline-offset: 2px; transform: scale(1.1); z-index: 900; }
-        .animal-card.neighbor   { outline: 3px dashed #38bdf8; outline-offset: 2px; z-index: 800; }
+        .animal-card.highlighted{ outline: 3px solid var(--play-sun); outline-offset: 2px; transform: scale(1.1); z-index: 900; }
+        .animal-card.neighbor   { outline: 3px dashed var(--sky); outline-offset: 2px; z-index: 800; }
 
         .medium-btn { cursor: pointer; transition: background-color .15s; }
-        .medium-btn.active-water { background-color: #0ea5e9; color: #fff; }
-        .medium-btn.active-land  { background-color: #16a34a; color: #fff; }
-        .medium-btn.active-air   { background-color: #8b5cf6; color: #fff; }
+        .medium-btn.active-water { background-color: var(--sky); color: #fff; }
+        .medium-btn.active-land  { background-color: var(--play-grass); color: #fff; }
+        .medium-btn.active-air   { background-color: var(--play-grape); color: #fff; }
 
         .canvas-bg {
             background-image:
-                linear-gradient(to right,  rgba(230,230,230,.5) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(230,230,230,.5) 1px, transparent 1px);
+                linear-gradient(to right,  rgba(33,30,26,.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(33,30,26,.06) 1px, transparent 1px);
             background-size: 20px 20px;
         }
+        /* neutral cream plot well so colour sits on neutral (edulab idiom), not colour-on-colour */
+        #canvas { background-color: var(--paper-2); border-color: var(--line); }
 
         .scene-3d-canvas { touch-action: none; cursor: grab; }
         .scene-3d-canvas:active { cursor: grabbing; }
@@ -283,29 +345,29 @@
         .rotate-text-right { writing-mode: vertical-rl; }
 
         /* Axis tick marks — positioned inside the canvas so overflow-hidden doesn't clip them */
-        .axis-tick   { position: absolute; background-color: rgba(100,116,139,.4); }
+        .axis-tick   { position: absolute; background-color: rgba(147,138,124,.5); }
         .axis-tick-x { width: 1px; height: 6px; bottom: 0; }
         .axis-tick-y { width: 6px; height: 1px; left: 0; }
 
         /* Tick labels stay inside the canvas bounds */
-        .tick-label   { position: absolute; font-size: 9px; color: rgba(71,85,105,.7); font-weight: 500; pointer-events: none; }
+        .tick-label   { position: absolute; font-size: 9px; color: var(--ink-3); font-family: var(--font-mono); font-weight: 500; pointer-events: none; }
         .tick-label-x { bottom: 8px; transform: translateX(-50%); }
         .tick-label-y { left: 6px;   transform: translateY(-50%); }
 
         .coordinate-tooltip {
             position: absolute;
-            background-color: rgba(15,23,42,.95);
-            color: white;
+            background-color: rgba(33,30,26,.95);
+            color: var(--paper);
             padding: 6px 10px;
-            border-radius: 6px;
+            border-radius: var(--r-sm);
             font-size: 11px;
             font-weight: 600;
             pointer-events: none;
             z-index: 2000;
             white-space: nowrap;
-            box-shadow: 0 4px 6px rgba(0,0,0,.3);
+            box-shadow: 0 4px 6px rgba(33,30,26,.3);
             display: none;
-            font-family: 'Courier New', monospace;
+            font-family: var(--font-mono);
         }
         .coordinate-tooltip::after {
             content: '';
@@ -313,22 +375,22 @@
             top: 100%; left: 50%;
             margin-left: -5px;
             border-width: 5px; border-style: solid;
-            border-color: rgba(15,23,42,.95) transparent transparent transparent;
+            border-color: rgba(33,30,26,.95) transparent transparent transparent;
         }
 
         /* Sortable table headers */
         .th-sort { cursor: pointer; user-select: none; padding: .55rem .6rem; font-weight: 600; white-space: nowrap; }
-        .th-sort:hover { color: #0369a1; }
+        .th-sort:hover { color: var(--teal); }
         .th-sort .sort-ind { opacity: 0; margin-left: 2px; font-size: .7em; }
-        .th-sort.active    { color: #0369a1; }
+        .th-sort.active    { color: var(--teal); }
         .th-sort.active .sort-ind { opacity: 1; }
-        #embeddings-table thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+        #embeddings-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
 
         /* Custom scrollbar */
         #embeddings-scroll::-webkit-scrollbar       { width: 8px; }
-        #embeddings-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        #embeddings-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        #embeddings-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        #embeddings-scroll::-webkit-scrollbar-track { background: var(--paper-2); border-radius: 10px; }
+        #embeddings-scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; }
+        #embeddings-scroll::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
 
         /* Bridge / prompts panels */
         details.bridge-panel summary { cursor: pointer; list-style: none; }
@@ -341,18 +403,17 @@
            Modern type scale, depth, gradients, icon controls.
         ============================================================ */
         :root {
-            --ink:#0f172a; --ink-soft:#334155; --ink-mute:#64748b;
-            --brand:#0284c7; --brand-2:#4f46e5;
-            --water:#0ea5e9; --land:#16a34a; --air:#8b5cf6;
-            --line:rgba(15,23,42,.08);
-            --r:.75rem; --r-lg:1rem; --r-xl:1.25rem;
-            --sh-1:0 1px 2px rgba(15,23,42,.06);
-            --sh-2:0 1px 3px rgba(15,23,42,.07), 0 10px 26px -10px rgba(15,23,42,.16);
-            --sh-3:0 2px 8px rgba(15,23,42,.08), 0 20px 44px -14px rgba(15,23,42,.24);
+            --ink-soft:var(--ink-2); --ink-mute:var(--ink-3);
+            --brand:var(--marigold); --brand-2:var(--coral);
+            --water:var(--sky); --land:var(--play-grass); --air:var(--play-grape);
+            --r:.75rem;
+            --sh-1:var(--shadow-sm);
+            --sh-2:var(--shadow-md);
+            --sh-3:var(--shadow-lg);
         }
         body {
             font-size: 16px;
-            background: linear-gradient(165deg, #f8fafc 0%, #eef2ff 55%, #f5f3ff 100%);
+            background: linear-gradient(165deg, var(--paper) 0%, var(--paper-2) 55%, var(--paper-3) 100%);
             background-attachment: fixed;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -368,23 +429,33 @@
         /* Headings */
         h2 { font-weight: 700; }
         .text-xl { font-size: 1.3rem; line-height: 1.7rem; }
+        /* Page header scheme (shared across edulab apps):
+           mono eyebrow → solid display title → centred, width-capped muted intro */
+        .edu-overline {
+            font-family: var(--font-mono); font-weight: 500; font-size: 12px;
+            letter-spacing: 0.14em; text-transform: uppercase; color: var(--marigold-ink);
+        }
         .app-title {
-            font-size: clamp(2rem, 4.5vw, 2.85rem);
-            font-weight: 800;
-            letter-spacing: -.025em;
-            line-height: 1.05;
-            background: linear-gradient(92deg, #0284c7 0%, #4f46e5 55%, #7c3aed 100%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
+            font-family: var(--font-display);
+            font-size: clamp(1.85rem, 3vw, 2.35rem);
+            font-weight: 700;
+            letter-spacing: -.02em;
+            line-height: 1.08;
+            color: var(--ink);
+        }
+        .edu-lead {
+            font-size: var(--body-lg, 1.0625rem); line-height: 1.6; color: var(--ink-2);
+            max-width: 34rem; margin: 0 auto;
         }
         /* Section heading with a small accent bar */
         .sec-title { display: flex; align-items: center; gap: .55rem; }
         .sec-title::before {
             content: ''; width: 4px; height: 1.05em; border-radius: 999px;
-            background: linear-gradient(180deg, var(--water), var(--brand-2));
+            background: var(--marigold);
         }
 
         /* Cards: hairline border + layered shadow + softer radius */
-        .bg-white.rounded-xl { border: 1px solid var(--line); border-radius: var(--r-lg); }
+        .bg-white.rounded-xl { border: 1px solid var(--line); border-radius: 1.5rem; }
         .shadow-lg { box-shadow: var(--sh-2); }
         .shadow-md { box-shadow: var(--sh-1); }
 
@@ -411,32 +482,34 @@
         .btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; transform: none; }
         .btn-sm { width: auto; padding: .5rem .85rem; font-size: .8125rem; font-weight: 600; border-radius: .65rem; }
 
-        .btn-primary { color:#fff; background: linear-gradient(180deg,#22b8f0,#0284c7); box-shadow: 0 8px 18px -7px rgba(2,132,199,.75); }
-        .btn-primary:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 12px 24px -7px rgba(2,132,199,.8); }
-        .btn-success { color:#fff; background: linear-gradient(180deg,#34d27f,#16a34a); box-shadow: 0 8px 18px -7px rgba(22,163,74,.7); }
-        .btn-secondary { color: var(--ink-soft); background:#fff; border-color: var(--line); box-shadow: var(--sh-1); }
-        .btn-secondary:not(:disabled):hover { background:#f8fafc; border-color:#cbd5e1; transform: translateY(-1px); }
-        .btn-danger { color:#fff; background: linear-gradient(180deg,#fb7185,#e11d48); box-shadow: 0 8px 18px -7px rgba(225,29,72,.6); }
-        .btn-toggle-on { color:#fff; background: linear-gradient(180deg,#a78bfa,#7c3aed); border-color: transparent; box-shadow: 0 8px 18px -7px rgba(124,58,237,.65); }
+        .btn-primary { color:#fff; background: var(--marigold); box-shadow: var(--shadow-sm); }
+        .btn-primary:not(:disabled):hover { background: var(--marigold-600); }
+        .btn-success { color:#fff; background: var(--teal); box-shadow: var(--shadow-sm); }
+        .btn-success:not(:disabled):hover { background: var(--teal-600); }
+        .btn-secondary { color: var(--ink-2); background: var(--paper-2); border-color: transparent; box-shadow: none; }
+        .btn-secondary:not(:disabled):hover { background: var(--paper-3); }
+        .btn-danger { color:#fff; background: var(--coral); box-shadow: var(--shadow-sm); }
+        .btn-danger:not(:disabled):hover { background: var(--coral-600); }
+        .btn-toggle-on { color:#fff; background: var(--play-grape); border-color: transparent; box-shadow: var(--shadow-sm); }
 
         /* Status as a pill that only shows when there's a message */
         #status-message:not(:empty) {
             display: block; width: fit-content; max-width: 100%; margin: .5rem auto 0;
             padding: .35rem .75rem; border-radius: 999px; font-weight: 600;
-            background: #eff6ff; color:#1d4ed8; border: 1px solid #dbeafe;
+            background: var(--marigold-soft); color:var(--marigold-ink); border: 1px solid #F2D9A8;
         }
 
         /* ── Animal cards: more presence + hover ─────────────────── */
         .animal-card {
             font-size: .9375rem; padding: .5rem .8rem; border-radius: .65rem;
-            box-shadow: 0 1px 2px rgba(15,23,42,.2), 0 5px 12px -6px rgba(15,23,42,.28);
+            box-shadow: var(--shadow-sm);
             transition: transform .15s ease, box-shadow .2s ease, outline .15s;
         }
-        .animal-card:not(.dragging):hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(15,23,42,.22), 0 10px 20px -8px rgba(15,23,42,.34); }
+        .animal-card:not(.dragging):hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .animal-card.query-card {
             display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
-            background: linear-gradient(180deg,#fde047,#facc15); color:#422006;
-            border: 1px dashed #a16207;
+            background: var(--play-sun); color:var(--marigold-ink);
+            border: 1px dashed var(--marigold-600);
         }
         .animal-card.query-card .icon { width: 15px; height: 15px; stroke-width: 2; }
 
@@ -444,28 +517,28 @@
         .medium-btn {
             display: flex; flex-direction: column; align-items: center; gap: .25rem;
             min-height: 50px; padding: .5rem .25rem; border-radius: .65rem;
-            border: 1px solid var(--line); background:#f8fafc; color: var(--ink-soft);
+            border: 1px solid var(--line); background:var(--paper-2); color: var(--ink-soft);
             font-size: .75rem; font-weight: 600;
         }
         .medium-btn .icon { width: 20px; height: 20px; }
-        .medium-btn:hover { background:#fff; border-color:#cbd5e1; }
-        .medium-btn.active-water { background: linear-gradient(180deg,#38bdf8,#0ea5e9); color:#fff; border-color: transparent; }
-        .medium-btn.active-land  { background: linear-gradient(180deg,#34d399,#16a34a); color:#fff; border-color: transparent; }
-        .medium-btn.active-air   { background: linear-gradient(180deg,#a78bfa,#8b5cf6); color:#fff; border-color: transparent; }
+        .medium-btn:hover { background:var(--surface); border-color:var(--line-2); }
+        .medium-btn.active-water { background: var(--sky); color:#fff; border-color: transparent; }
+        .medium-btn.active-land  { background: var(--play-grass); color:#fff; border-color: transparent; }
+        .medium-btn.active-air   { background: var(--play-grape); color:#fff; border-color: transparent; }
 
         /* ── Habitat slider: water→land→air gradient track ───────── */
         #z-slider {
             -webkit-appearance: none; appearance: none;
             height: 8px; border-radius: 999px; margin: .6rem 0 .35rem;
-            background: linear-gradient(90deg,#0ea5e9 0%, #0ea5e9 28%, #16a34a 50%, #8b5cf6 72%, #8b5cf6 100%);
+            background: linear-gradient(90deg,var(--sky) 0%, var(--sky) 28%, var(--play-grass) 50%, var(--play-grape) 72%, var(--play-grape) 100%);
         }
         #z-slider::-webkit-slider-thumb {
             -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
-            background:#fff; border: 2px solid #475569; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer;
+            background:#fff; border: 2px solid var(--ink); box-shadow: 0 1px 4px rgba(33,30,26,.3); cursor: pointer;
         }
         #z-slider::-moz-range-thumb {
             width: 20px; height: 20px; border-radius: 50%;
-            background:#fff; border: 2px solid #475569; cursor: pointer;
+            background:#fff; border: 2px solid var(--ink); cursor: pointer;
         }
         .slider-key { display: flex; align-items: center; gap: .25rem; }
         .slider-key .icon-inline { width: 13px; height: 13px; }
@@ -474,26 +547,26 @@
         #inspector-close {
             display: inline-flex; align-items: center; justify-content: center;
             width: 34px; height: 34px; border-radius: 999px;
-            background: transparent; color:#94a3b8; cursor: pointer;
+            background: transparent; color:var(--ink-3); cursor: pointer;
             transition: background .15s, color .15s;
         }
-        #inspector-close:hover { background:#f1f5f9; color:#475569; }
+        #inspector-close:hover { background:var(--paper-2); color:var(--ink-2); }
         #inspector-close .icon { width: 18px; height: 18px; }
 
         /* ── Tooltip & 3-D scene chrome: frosted glass ───────────── */
         .coordinate-tooltip {
-            font-size: .78rem; background: rgba(15,23,42,.9);
+            font-size: .78rem; background: rgba(33,30,26,.9);
             -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
             border: 1px solid rgba(255,255,255,.08);
         }
-        #view-3d { background: radial-gradient(120% 120% at 50% 0%, #1e293b 0%, #0b1220 72%); }
+        #view-3d { background: radial-gradient(120% 120% at 50% 0%, #2B2722 0%, #15120F 72%); }
         /* Desktop canvas height — ID selector wins regardless of source order
            (the .md-h-500 utility is declared before .h-400, so it would otherwise lose) */
         @media (min-width: 768px) {
             #canvas, #view-3d { height: 620px; }
         }
         .scene-legend {
-            background: rgba(15,23,42,.4);
+            background: rgba(33,30,26,.4);
             -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,.1); border-radius: .65rem;
             padding: .5rem .6rem; font-size: .75rem; line-height: 1.5;
@@ -511,26 +584,26 @@
         .fp-select {
             width: 100%; font-size: .85rem; font-weight: 600; color: var(--ink-soft);
             padding: .4rem .5rem; border-radius: .55rem; border: 1px solid var(--line);
-            background: #fff; cursor: pointer;
+            background: var(--surface); cursor: pointer;
         }
-        .fp-select:hover { border-color: #cbd5e1; }
+        .fp-select:hover { border-color: var(--line-2); }
         .fp-strip {
             flex: 1 1 auto; width: 100%; height: 34px; border-radius: .5rem;
             border: 1px solid var(--line); cursor: crosshair; display: block;
         }
         .fp-tooltip {
-            display: none; margin-top: .4rem; font-family: 'Courier New', monospace;
+            display: none; margin-top: .4rem; font-family: var(--font-mono);
             font-size: .75rem; color: var(--ink-mute);
         }
         .fp-tooltip.show { display: block; }
         .fp-sim { margin-top: 1rem; }
         .fp-sim-track {
             height: 12px; border-radius: 999px; overflow: hidden;
-            background: #eef2f7; border: 1px solid var(--line);
+            background: var(--paper-3); border: 1px solid var(--line);
         }
         .fp-sim-fill {
             height: 100%; width: 0%; border-radius: 999px;
-            background: linear-gradient(90deg, #f59e0b, #22c55e);
+            background: var(--teal);
             transition: width .35s ease;
         }
         .fp-sim-verdict { margin-top: .4rem; font-size: .9rem; font-weight: 650; }
@@ -538,7 +611,7 @@
         .fp-chip {
             display: inline-flex; align-items: center; gap: .35rem;
             font-size: .78rem; font-weight: 600; color: var(--ink-soft);
-            background: #f1f5f9; border: 1px solid var(--line);
+            background: var(--paper-2); border: 1px solid var(--line);
             padding: .35rem .65rem; border-radius: 999px;
         }
         .fp-chip .icon-inline { width: 14px; height: 14px; color: var(--brand); }
@@ -589,18 +662,30 @@
         <symbol id="i-arrow-r" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
     </svg>
 
-    <div class="w-full max-w-5xl">
-        <header class="mb-6 text-center">
+    <!-- edulab branded top menu -->
+    <header class="edu-header">
+        <div class="edu-header-inner">
+            <img class="edu-logo" alt="edulab" src="edulab-mark-teal.png">
+            <span class="edu-wordmark">edulab</span>
+            <span class="edu-tag">demo lab</span>
+        </div>
+    </header>
+
+    <div class="edu-page">
+        <header class="edu-hero text-center">
+            <p class="edu-overline mb-2">Interactive demo · 6 min</p>
             <h1 class="app-title">Animal embeddings playground</h1>
-            <p class="text-sm md-text-base text-slate-600 mt-2">
+            <p class="edu-lead mt-3">
                 Position each animal by size &amp; environment, tap it to set its habitat (water/land/air),
                 then generate 3-D embeddings and explore nearest neighbors.
             </p>
         </header>
 
         <main class="flex flex-col lg-flex-row gap-6 md-gap-8">
+            <!-- Left column: canvas + semantic search + inspector -->
+            <div class="lg-w-2-3 flex flex-col gap-6 md-gap-8">
             <!-- Canvas section -->
-            <section class="lg-w-2-3 bg-white p-4 sm-p-6 rounded-xl shadow-lg relative">
+            <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg relative">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-semibold text-sky-600 sec-title">Canvas</h2>
                     <button id="view-3d-btn" class="btn btn-secondary btn-sm" disabled>
@@ -624,13 +709,59 @@
                 <div id="view-3d" class="hidden relative w-full h-400 md-h-500 bg-slate-900 rounded-lg overflow-hidden border-2 border-slate-700">
                     <canvas id="scene-3d" class="scene-3d-canvas absolute inset-0 w-full" style="height:100%;"></canvas>
                     <div class="scene-legend absolute text-slate-300 pointer-events-none" style="top:.5rem;left:.75rem;">
-                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:#0ea5e9"></span>Water</div>
-                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:#16a34a"></span>Land</div>
-                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:#8b5cf6"></span>Air</div>
+                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--sky)"></span>Water</div>
+                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--play-grass)"></span>Land</div>
+                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--play-grape)"></span>Air</div>
                     </div>
                     <div class="scene-hint absolute text-slate-400 pointer-events-none" style="bottom:.5rem;right:.75rem;">drag to rotate · scroll to zoom</div>
                 </div>
             </section>
+
+            <!-- Semantic search (revealed after generate) -->
+            <section id="query-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
+                <h2 class="text-xl font-semibold mb-2 text-sky-600 sec-title">Semantic search</h2>
+                <p class="text-xs text-slate-500 mb-3">Drag the query marker onto the canvas. Its nearest neighbors are your search results — this is how AI retrieval works.</p>
+                <div id="query-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
+            </section>
+
+            <!-- Inspector -->
+            <section id="inspector" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-xl font-semibold text-sky-600 sec-title">Inspector</h2>
+                    <button id="inspector-close" aria-label="Close inspector">
+                        <svg class="icon"><use href="#i-close"></use></svg>
+                    </button>
+                </div>
+                <div id="inspector-name"   class="font-semibold text-slate-800"></div>
+                <div id="inspector-vector" class="font-mono text-xs text-slate-500 mb-3"></div>
+
+                <div id="habitat-controls">
+                    <label class="text-xs font-medium text-slate-500">Habitat (3rd dimension)</label>
+                    <div id="medium-control" class="flex gap-1_5" style="margin:.375rem 0;">
+                        <button data-medium="water" class="medium-btn flex-1">
+                            <svg class="icon"><use href="#i-water"></use></svg>Water
+                        </button>
+                        <button data-medium="land" class="medium-btn flex-1">
+                            <svg class="icon"><use href="#i-land"></use></svg>Land
+                        </button>
+                        <button data-medium="air" class="medium-btn flex-1">
+                            <svg class="icon"><use href="#i-air"></use></svg>Air
+                        </button>
+                    </div>
+                    <input id="z-slider" type="range" min="0" max="100" value="50" class="w-full accent-sky" style="display:block;">
+                    <div class="flex justify-between text-10px text-slate-400 px-0_5">
+                        <span class="slider-key"><svg class="icon-inline"><use href="#i-water"></use></svg>Water</span>
+                        <span class="slider-key"><svg class="icon-inline"><use href="#i-land"></use></svg>Land</span>
+                        <span class="slider-key"><svg class="icon-inline"><use href="#i-air"></use></svg>Air</span>
+                    </div>
+                </div>
+
+                <div id="neighbors-panel" class="hidden" style="margin-top:1rem;">
+                    <div id="neighbors-title" class="text-xs font-medium text-slate-500 mb-1">Nearest neighbors (3-D)</div>
+                    <ol id="neighbors-list" class="text-sm space-y-1"></ol>
+                </div>
+            </section>
+            </div>
 
             <!-- Sidebar -->
             <aside class="lg-w-1-3 flex flex-col gap-6 md-gap-8">
@@ -660,51 +791,6 @@
                         <span class="lbl">Reset</span>
                     </button>
                     <p id="status-message" class="text-xs text-slate-500 mt-2 text-center"></p>
-                </section>
-
-                <!-- Semantic search (revealed after generate) -->
-                <section id="query-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
-                    <h2 class="text-xl font-semibold mb-2 text-sky-600 sec-title">Semantic search</h2>
-                    <p class="text-xs text-slate-500 mb-3">Drag the query marker onto the canvas. Its nearest neighbors are your search results — this is how AI retrieval works.</p>
-                    <div id="query-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
-                </section>
-
-                <!-- Inspector -->
-                <section id="inspector" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
-                    <div class="flex items-center justify-between mb-1">
-                        <h2 class="text-xl font-semibold text-sky-600 sec-title">Inspector</h2>
-                        <button id="inspector-close" aria-label="Close inspector">
-                            <svg class="icon"><use href="#i-close"></use></svg>
-                        </button>
-                    </div>
-                    <div id="inspector-name"   class="font-semibold text-slate-800"></div>
-                    <div id="inspector-vector" class="font-mono text-xs text-slate-500 mb-3"></div>
-
-                    <div id="habitat-controls">
-                        <label class="text-xs font-medium text-slate-500">Habitat (3rd dimension)</label>
-                        <div id="medium-control" class="flex gap-1_5" style="margin:.375rem 0;">
-                            <button data-medium="water" class="medium-btn flex-1">
-                                <svg class="icon"><use href="#i-water"></use></svg>Water
-                            </button>
-                            <button data-medium="land" class="medium-btn flex-1">
-                                <svg class="icon"><use href="#i-land"></use></svg>Land
-                            </button>
-                            <button data-medium="air" class="medium-btn flex-1">
-                                <svg class="icon"><use href="#i-air"></use></svg>Air
-                            </button>
-                        </div>
-                        <input id="z-slider" type="range" min="0" max="100" value="50" class="w-full accent-sky" style="display:block;">
-                        <div class="flex justify-between text-10px text-slate-400 px-0_5">
-                            <span class="slider-key"><svg class="icon-inline"><use href="#i-water"></use></svg>Water</span>
-                            <span class="slider-key"><svg class="icon-inline"><use href="#i-land"></use></svg>Land</span>
-                            <span class="slider-key"><svg class="icon-inline"><use href="#i-air"></use></svg>Air</span>
-                        </div>
-                    </div>
-
-                    <div id="neighbors-panel" class="hidden" style="margin-top:1rem;">
-                        <div id="neighbors-title" class="text-xs font-medium text-slate-500 mb-1">Nearest neighbors (3-D)</div>
-                        <ol id="neighbors-list" class="text-sm space-y-1"></ol>
-                    </div>
                 </section>
             </aside>
         </main>
@@ -1042,7 +1128,7 @@
             }
 
             function habitatColor(z) {
-                return z < 34 ? '#0ea5e9' : z < 67 ? '#16a34a' : '#8b5cf6';
+                return z < 34 ? '#2E78C9' : z < 67 ? '#4FA45C' : '#7A5AC2';
             }
 
             // ── Tooltip (now shows x, y, z) ───────────────────────────
@@ -1264,7 +1350,7 @@
                     const line = document.createElementNS(SVG_NS, 'line');
                     line.setAttribute('x1', from.cx); line.setAttribute('y1', from.cy);
                     line.setAttribute('x2', to.cx);   line.setAttribute('y2', to.cy);
-                    line.setAttribute('stroke', '#0ea5e9');
+                    line.setAttribute('stroke', '#2E78C9');
                     line.setAttribute('stroke-width', '2');
                     line.setAttribute('stroke-linecap', 'round');
                     line.setAttribute('stroke-opacity', `${1 - i * 0.22}`);
@@ -1448,7 +1534,7 @@
                         : data.vector;
                     [0, 1, 2].forEach(i => {
                         const td = document.createElement('td');
-                        td.style.cssText = 'padding:.55rem .6rem;text-align:right;font-family:"Courier New",monospace;color:#475569;';
+                        td.style.cssText = 'padding:.55rem .6rem;text-align:right;font-family:var(--font-mono);color:var(--ink-2);';
                         td.textContent = dispVec[i];
                         tr.appendChild(td);
                     });
@@ -1466,12 +1552,12 @@
             function fpLerp(c1, c2, t) {
                 return [0,1,2].map(i => Math.round(c1[i] + (c2[i] - c1[i]) * t));
             }
-            // Diverging palette: blue (negative) → near-white (0) → red (positive).
+            // Diverging palette: sky (negative) → warm paper (0) → coral (positive).
             function fpColor(v) {
                 const t = Math.max(-1, Math.min(1, v / 100));
-                const mid = [248, 250, 252];
-                const rgb = t < 0 ? fpLerp(mid, [37, 99, 235], -t)
-                                  : fpLerp(mid, [220, 38, 38], t);
+                const mid = [251, 247, 240];
+                const rgb = t < 0 ? fpLerp(mid, [46, 120, 201], -t)
+                                  : fpLerp(mid, [239, 91, 63], t);
                 return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
             }
             function drawFingerprint(cv, name) {
@@ -1503,10 +1589,10 @@
                 const pct = Math.round(Math.max(0, sim) * 100);
                 fpSimFill.style.width = pct + '%';
                 let text, color;
-                if (a === b)        { text = 'Same animal — identical fingerprint.'; color = '#16a34a'; }
-                else if (sim > 0.6) { text = `Very similar (${pct}%) — they'd be neighbors in a real model.`; color = '#16a34a'; }
-                else if (sim > 0.3) { text = `Somewhat similar (${pct}%) — partly overlapping meaning.`; color = '#ca8a04'; }
-                else                { text = `Quite different (${pct}%) — far apart in the space.`; color = '#dc2626'; }
+                if (a === b)        { text = 'Same animal — identical fingerprint.'; color = '#2F8F5B'; }
+                else if (sim > 0.6) { text = `Very similar (${pct}%) — they'd be neighbors in a real model.`; color = '#2F8F5B'; }
+                else if (sim > 0.3) { text = `Somewhat similar (${pct}%) — partly overlapping meaning.`; color = '#C9810A'; }
+                else                { text = `Quite different (${pct}%) — far apart in the space.`; color = '#D8412A'; }
                 fpSimVerdict.textContent = text;
                 fpSimVerdict.style.color = color;
             }
@@ -1746,12 +1832,12 @@
                     { a: [50,50,0], b: [50,50,100], lo: 'water', hi: 'air'      }
                 ];
                 ctx.lineWidth = 1.25;
-                ctx.font = '11px system-ui, sans-serif';
+                ctx.font = '11px "DM Mono", ui-monospace, monospace';
                 axes.forEach(ax => {
                     const p0 = proj(...ax.a), p1 = proj(...ax.b);
-                    ctx.strokeStyle = 'rgba(148,163,184,.6)';
+                    ctx.strokeStyle = 'rgba(236,225,207,.45)';
                     ctx.beginPath(); ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.stroke();
-                    ctx.fillStyle = 'rgba(148,163,184,.9)';
+                    ctx.fillStyle = 'rgba(236,225,207,.8)';
                     ctx.fillText(ax.hi, p1.sx + 4, p1.sy);
                     ctx.fillText(ax.lo, p0.sx + 4, p0.sy);
                 });
@@ -1777,7 +1863,7 @@
                                 ? MODEL_EMBEDDINGS[n.data.name] : n.data.vector;
                             const tp = proj(nv[0], nv[1], nv[2]);
                             ctx.globalAlpha = 1 - i * 0.22;
-                            ctx.strokeStyle = '#0ea5e9';
+                            ctx.strokeStyle = '#2E78C9';
                             ctx.lineWidth = 2;
                             ctx.beginPath();
                             ctx.moveTo(fp.sx, fp.sy);
@@ -1795,15 +1881,15 @@
                     ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
                     ctx.fillStyle = habitatColor(v[2]);
                     ctx.globalAlpha = 0.92; ctx.fill(); ctx.globalAlpha = 1;
-                    if (sel) { ctx.lineWidth = 2; ctx.strokeStyle = '#facc15'; ctx.stroke(); }
-                    ctx.fillStyle = sel ? '#fde68a' : '#e2e8f0';
-                    ctx.font = (sel ? '600 ' : '') + '11px system-ui, sans-serif';
+                    if (sel) { ctx.lineWidth = 2; ctx.strokeStyle = '#F2A516'; ctx.stroke(); }
+                    ctx.fillStyle = sel ? '#FBE7C2' : '#ECE1CF';
+                    ctx.font = (sel ? '600 ' : '') + '11px "Hanken Grotesk", system-ui, sans-serif';
                     ctx.fillText(d.name, p.sx + r + 3, p.sy + 3);
                 });
 
                 // Mode label at bottom of scene
-                ctx.font = '11px system-ui, sans-serif';
-                ctx.fillStyle = compareMode ? 'rgba(250,204,21,0.85)' : 'rgba(148,163,184,0.7)';
+                ctx.font = '11px "Hanken Grotesk", system-ui, sans-serif';
+                ctx.fillStyle = compareMode ? 'rgba(232,146,12,0.9)' : 'rgba(236,225,207,0.7)';
                 ctx.fillText(compareMode
                     ? 'Model (bio-features → PCA 3-D)'
                     : 'Your positions', 8, H - 12);
