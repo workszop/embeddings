@@ -6,39 +6,49 @@
     <title>Animal Embedding Demo</title>
     <style>
         /* ============================================================
-           edulab — Editorial Color design tokens (injected by edustyl)
-           Source of truth: edulab design system (colors_and_type.css)
+           edulab - Editorial Color design tokens (injected by edustyl)
+           Source of truth: ~/.claude/skills/edustyl/tokens/colors_and_type.css
         ============================================================ */
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
         :root {
             /* Brand fonts */
-            --font-display: 'Bricolage Grotesque', 'Hanken Grotesk', system-ui, sans-serif;
-            --font-sans:    'Hanken Grotesk', system-ui, -apple-system, sans-serif;
-            --font-mono:    'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+            --font-display: 'Outfit', 'IBM Plex Sans', system-ui, sans-serif;
+            --font-sans:    'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+            --font-mono:    'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
             /* Paper / ink */
-            --paper:#FBF7F0; --paper-2:#F4EDDF; --paper-3:#ECE1CF; --surface:#FFFFFF;
-            --ink:#211E1A; --ink-2:#5B554D; --ink-3:#938A7C;
-            --line:#E7DCCB; --line-2:#D6C8B2;
-            /* Brand */
-            --marigold:#E8920C; --marigold-600:#CE800A; --marigold-soft:#FBE7C2; --marigold-ink:#8A4F00;
-            --teal:#0E8C7F; --teal-600:#0B7468; --teal-soft:#D2EBE6; --teal-ink:#0A5A52;
-            --coral:#EF5B3F; --coral-600:#D44A30; --coral-soft:#FBDDD4; --coral-ink:#9A2E1B;
-            --sky:#2E78C9; --sky-soft:#D9E7F6; --sky-ink:#1B4E88;
+            --paper:#FFFFFF; --paper-2:#FBF7E6; --paper-3:#F5EDCB; --surface:#FFFFFF;
+            --ink:#1C1917; --ink-2:#57534E; --ink-3:#948C82;
+            --line:#EDE7D2; --line-2:#DDD4B6;
+            /* Brand: yellow primary, blue + green secondary, red danger */
+            --yellow:#FFD500; --yellow-600:#F0C800; --yellow-soft:#FFD500; --yellow-ink:#1C1917;
+            --blue:#1E8FC2;   --blue-600:#177AA8;   --blue-soft:#1E8FC2;   --blue-ink:#FFFFFF;
+            --green:#00A651;  --green-600:#009444;  --green-soft:#00A651;  --green-ink:#FFFFFF;
+            --red:#E5322D;    --red-600:#C92823;    --red-soft:#E5322D;    --red-ink:#FFFFFF;
+            /* Legacy aliases (older edulab apps) */
+            --marigold:var(--yellow); --marigold-600:var(--yellow-600); --marigold-soft:var(--yellow-soft); --marigold-ink:var(--yellow-ink);
+            --teal:var(--blue); --teal-600:var(--blue-600); --teal-soft:var(--blue-soft); --teal-ink:var(--blue-ink);
+            --sky:var(--green); --sky-soft:var(--green-soft); --sky-ink:var(--green-ink);
+            --coral:var(--red); --coral-600:var(--red-600); --coral-soft:var(--red-soft); --coral-ink:var(--red-ink);
             /* Play / subject palette */
-            --play-sun:#F2A516; --play-grass:#4FA45C; --play-berry:#C6478B;
-            --play-grape:#7A5AC2; --play-grape-600:#6A4BAF; --play-sky:#2E78C9; --play-coral:#EF5B3F;
+            --play-sun:#FFD500; --play-grass:#00A651; --play-berry:#C6478B;
+            --play-grape:#7A5AC2; --play-grape-600:#6A4BAF; --play-sky:#1E8FC2; --play-coral:#E5322D;
             /* Semantic */
-            --success:#2F8F5B; --success-soft:#D7EEDD; --success-ink:#1C6A3E;
-            --warning:#C9810A; --warning-soft:#FBEAC6; --warning-ink:#855207;
-            --danger:#D8412A;  --danger-soft:#FAD9D2;  --danger-ink:#97271A;
-            --focus-ring: 0 0 0 3px rgba(232,146,12,.38);
+            --success:#00A651; --success-soft:#00A651; --success-ink:#FFFFFF;
+            --warning:#FFD500; --warning-soft:#FFD500; --warning-ink:#1C1917;
+            --danger:#E5322D;  --danger-soft:#E5322D;  --danger-ink:#FFFFFF;
+            --info:#1E8FC2;    --info-soft:#1E8FC2;    --info-ink:#FFFFFF;
+            --primary:var(--yellow); --on-primary:#1C1917;
+            --focus-ring: 0 0 0 3px color-mix(in srgb, var(--yellow) 45%, transparent);
             /* Radii (friendly, generous) */
             --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-pill:999px;
-            /* Elevation — warm, low, soft */
+            /* Elevation - warm, low, soft */
             --shadow-sm: 0 1px 2px rgba(33,30,26,.06), 0 1px 1px rgba(33,30,26,.04);
             --shadow-md: 0 4px 16px rgba(33,30,26,.08), 0 1px 3px rgba(33,30,26,.05);
             --shadow-lg: 0 16px 40px rgba(33,30,26,.12), 0 3px 8px rgba(33,30,26,.06);
-            --shadow-marigold: 0 8px 22px rgba(232,146,12,.28);
+            --shadow-primary: 0 8px 22px color-mix(in srgb, var(--yellow) 30%, transparent);
+            --shadow-marigold: var(--shadow-primary);
+            /* App roles: the three habitats (data encoding, kept distinguishable) */
+            --water: var(--blue); --land: var(--green); --air: var(--play-grape);
         }
 
         /* ============================================================
@@ -62,21 +72,16 @@
         /* edulab branded top menu (shared across edulab apps) */
         .edu-header {
             position: sticky; top: 0; z-index: 50; width: 100%;
-            background: rgba(251, 247, 240, 0.85);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--line);
         }
         .edu-header-inner {
             max-width: 1100px; margin: 0 auto;
-            padding: 15px 30px; display: flex; align-items: center; gap: 12px;
+            padding: 8px 30px; display: flex; align-items: center; gap: 12px;
         }
-        .edu-logo { width: 32px; height: 32px; display: block; }
+        .edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; }
         .edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); line-height: 1; }
-        .edu-tag {
-            font-family: var(--font-mono); font-weight: 500; font-size: 11px;
-            letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal-ink);
-            background: var(--teal-soft); padding: 4px 9px; border-radius: var(--r-pill);
-        }
         /* page content gets its own padding now that body sits flush under the bar */
         .edu-page { width: 100%; max-width: 1100px; padding: 44px 24px 72px; }
         @media (min-width: 768px) { .edu-page { padding: 64px 30px 88px; } }
@@ -178,44 +183,44 @@
         .max-h-220    { max-height: 220px; }
 
         /* ============================================================
-           COLOURS — backgrounds
+           COLOURS – backgrounds
         ============================================================ */
         .bg-white    { background-color: var(--surface); }
         .bg-slate-100{ background-color: var(--paper-2); }
         .bg-slate-200{ background-color: var(--paper-3); }
         .bg-slate-900{ background-color: var(--ink); }
-        .bg-sky-50   { background-color: var(--sky-soft); }
-        .bg-sky-500  { background-color: var(--sky); }
-        /* animal palette — mapped to the edulab play/brand palette (kept distinguishable) */
-        .bg-blue-600    { background-color: var(--sky); }
+        .bg-sky-50   { background-color: var(--paper-2); }
+        .bg-sky-500  { background-color: var(--blue); }
+        /* animal palette – mapped to the edulab play/brand palette (kept distinguishable) */
+        .bg-blue-600    { background-color: var(--blue-600); }
         .bg-slate-600   { background-color: var(--ink-2); }
-        .bg-orange-400  { background-color: var(--play-sun); }
+        .bg-orange-400  { background-color: var(--yellow); }
         .bg-slate-500   { background-color: var(--ink-3); }
-        .bg-amber-600   { background-color: var(--marigold); }
-        .bg-yellow-700  { background-color: var(--marigold-600); }
-        .bg-neutral-400 { background-color: #B8A794; }
-        .bg-green-600   { background-color: var(--play-grass); }
-        .bg-teal-500    { background-color: var(--teal); }
-        .bg-amber-800   { background-color: var(--marigold-ink); }
-        .bg-stone-400   { background-color: #C2B39E; }
-        .bg-red-500     { background-color: var(--coral); }
-        .bg-red-400     { background-color: #F2795F; }
-        .bg-orange-500  { background-color: var(--play-coral); }
-        .bg-stone-500   { background-color: var(--ink-2); }
+        .bg-amber-600   { background-color: var(--yellow-600); }
+        .bg-yellow-700  { background-color: var(--play-berry); }
+        .bg-neutral-400 { background-color: var(--line-2); }
+        .bg-green-600   { background-color: var(--green); }
+        .bg-teal-500    { background-color: var(--green-600); }
+        .bg-amber-800   { background-color: var(--ink); }
+        .bg-stone-400   { background-color: var(--paper-3); }
+        .bg-red-500     { background-color: var(--play-grape); }
+        .bg-red-400     { background-color: var(--red-600); }
+        .bg-orange-500  { background-color: var(--red); }
+        .bg-stone-500   { background-color: var(--blue-600); }
         .bg-gray-300    { background-color: var(--line-2); }
         .bg-purple-800  { background-color: var(--play-grape-600); }
         /* challenge / query / UI */
         .bg-gray-800    { background-color: var(--ink); }
-        .bg-yellow-500  { background-color: var(--marigold); }
-        .bg-yellow-400  { background-color: var(--play-sun); }
-        .bg-amber-50    { background-color: var(--marigold-soft); }
-        .bg-emerald-50  { background-color: var(--teal-soft); }
+        .bg-yellow-500  { background-color: var(--yellow); }
+        .bg-yellow-400  { background-color: var(--yellow); }
+        .bg-amber-50    { background-color: var(--yellow-soft); }
+        .bg-emerald-50  { background-color: var(--green-soft); }
         .bg-slate-50    { background-color: var(--paper); }
 
         /* ============================================================
-           COLOURS — text
+           COLOURS – text
         ============================================================ */
-        .text-white    { color: #ffffff; }
+        .text-white    { color: var(--surface); }
         .text-black    { color: var(--ink); }
         .text-slate-800{ color: var(--ink); }
         .text-slate-700{ color: var(--ink); }
@@ -223,10 +228,10 @@
         .text-slate-500{ color: var(--ink-3); }
         .text-slate-400{ color: var(--ink-3); }
         .text-slate-300{ color: var(--line-2); }
-        .text-sky-700  { color: var(--teal-ink); }
-        .text-sky-600  { color: var(--teal); }
-        .text-amber-800{ color: var(--marigold-ink); }
-        .text-emerald-700 { color: var(--success-ink); }
+        .text-sky-700  { color: var(--ink); }
+        .text-sky-600  { color: var(--ink); }
+        .text-amber-800{ color: var(--yellow-ink); }
+        .text-emerald-700 { color: var(--green); }
 
         /* ============================================================
            TYPOGRAPHY
@@ -264,9 +269,9 @@
         .border-slate-200 { border-color: var(--line); }
         .border-slate-300 { border-color: var(--line-2); }
         .border-slate-700 { border-color: var(--ink-2); }
-        .border-sky-200   { border-color: var(--sky-soft); }
-        .border-amber-200 { border-color: var(--marigold-soft); }
-        .border-emerald-200 { border-color: var(--teal-soft); }
+        .border-sky-200   { border-color: var(--line); }
+        .border-amber-200 { border-color: transparent; }
+        .border-emerald-200 { border-color: transparent; }
         .rounded-md { border-radius: 0.375rem; }
         .rounded-lg { border-radius: 0.5rem; }
         .rounded-xl { border-radius: 0.75rem; }
@@ -291,11 +296,11 @@
         .hover-bg-slate-50:hover  { background-color: var(--paper-2); }
         .hover-bg-slate-200:hover { background-color: var(--paper-3); }
         .hover-bg-slate-300:hover { background-color: var(--line-2); }
-        .hover-bg-sky-600:hover   { background-color: var(--teal); }
+        .hover-bg-sky-600:hover   { background-color: var(--blue); }
         .hover-text-slate-600:hover { color: var(--ink-2); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         button:focus    { outline: none; box-shadow: var(--focus-ring); outline-offset: 2px; }
-        .accent-sky { accent-color: var(--marigold); }
+        .accent-sky { accent-color: var(--yellow); }
 
         /* ============================================================
            COMPONENTS
@@ -321,13 +326,13 @@
             .animal-card { padding: 0.5rem 0.75rem; }
         }
         .animal-card.dragging   { z-index: 1000; opacity: .6; transform: scale(1.05); }
-        .animal-card.highlighted{ outline: 3px solid var(--play-sun); outline-offset: 2px; transform: scale(1.1); z-index: 900; }
-        .animal-card.neighbor   { outline: 3px dashed var(--sky); outline-offset: 2px; z-index: 800; }
+        .animal-card.highlighted{ outline: 3px solid var(--ink); outline-offset: 2px; transform: scale(1.1); z-index: 900; }
+        .animal-card.neighbor   { outline: 3px dashed var(--blue); outline-offset: 2px; z-index: 800; }
 
         .medium-btn { cursor: pointer; transition: background-color .15s; }
-        .medium-btn.active-water { background-color: var(--sky); color: #fff; }
-        .medium-btn.active-land  { background-color: var(--play-grass); color: #fff; }
-        .medium-btn.active-air   { background-color: var(--play-grape); color: #fff; }
+        .medium-btn.active-water { background-color: var(--water); color: var(--blue-ink); }
+        .medium-btn.active-land  { background-color: var(--land); color: var(--green-ink); }
+        .medium-btn.active-air   { background-color: var(--air); color: var(--blue-ink); }
 
         .canvas-bg {
             background-image:
@@ -344,7 +349,7 @@
         .rotate-text-left  { writing-mode: vertical-rl; transform: rotate(180deg); }
         .rotate-text-right { writing-mode: vertical-rl; }
 
-        /* Axis tick marks — positioned inside the canvas so overflow-hidden doesn't clip them */
+        /* Axis tick marks – positioned inside the canvas so overflow-hidden doesn't clip them */
         .axis-tick   { position: absolute; background-color: rgba(147,138,124,.5); }
         .axis-tick-x { width: 1px; height: 6px; bottom: 0; }
         .axis-tick-y { width: 6px; height: 1px; left: 0; }
@@ -380,9 +385,9 @@
 
         /* Sortable table headers */
         .th-sort { cursor: pointer; user-select: none; padding: .55rem .6rem; font-weight: 600; white-space: nowrap; }
-        .th-sort:hover { color: var(--teal); }
+        .th-sort:hover { color: var(--blue); }
         .th-sort .sort-ind { opacity: 0; margin-left: 2px; font-size: .7em; }
-        .th-sort.active    { color: var(--teal); }
+        .th-sort.active    { color: var(--blue); }
         .th-sort.active .sort-ind { opacity: 1; }
         #embeddings-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
 
@@ -404,17 +409,15 @@
         ============================================================ */
         :root {
             --ink-soft:var(--ink-2); --ink-mute:var(--ink-3);
-            --brand:var(--marigold); --brand-2:var(--coral);
-            --water:var(--sky); --land:var(--play-grass); --air:var(--play-grape);
-            --r:.75rem;
+            --brand:var(--yellow); --brand-2:var(--red);
+            --r: var(--r-pill);
             --sh-1:var(--shadow-sm);
             --sh-2:var(--shadow-md);
             --sh-3:var(--shadow-lg);
         }
         body {
             font-size: 16px;
-            background: linear-gradient(165deg, var(--paper) 0%, var(--paper-2) 55%, var(--paper-3) 100%);
-            background-attachment: fixed;
+            background: var(--paper);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -430,29 +433,22 @@
         h2 { font-weight: 700; }
         .text-xl { font-size: 1.3rem; line-height: 1.7rem; }
         /* Page header scheme (shared across edulab apps):
-           mono eyebrow → solid display title → centred, width-capped muted intro */
+           solid display title → full-width muted lead. No eyebrow. */
         .edu-overline {
             font-family: var(--font-mono); font-weight: 500; font-size: 12px;
-            letter-spacing: 0.14em; text-transform: uppercase; color: var(--marigold-ink);
+            letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink);
         }
         .app-title {
             font-family: var(--font-display);
-            font-size: clamp(1.85rem, 3vw, 2.35rem);
-            font-weight: 700;
-            letter-spacing: -.02em;
-            line-height: 1.08;
+            font-size: clamp(2rem, 4.5vw, 2.85rem);
+            font-weight: 800;
+            letter-spacing: -.025em;
+            line-height: 1.05;
             color: var(--ink);
         }
-        .edu-lead {
-            font-size: var(--body-lg, 1.0625rem); line-height: 1.6; color: var(--ink-2);
-            max-width: 34rem; margin: 0 auto;
-        }
-        /* Section heading with a small accent bar */
-        .sec-title { display: flex; align-items: center; gap: .55rem; }
-        .sec-title::before {
-            content: ''; width: 4px; height: 1.05em; border-radius: 999px;
-            background: var(--marigold);
-        }
+        .edu-lead { font-size: 1.0625rem; line-height: 1.6; color: var(--ink-2); margin: 0; }
+        /* Section headings: solid ink display type, no accent bar */
+        .sec-title { color: var(--ink); font-family: var(--font-display); font-weight: 600; letter-spacing: -.015em; }
 
         /* Cards: hairline border + layered shadow + softer radius */
         .bg-white.rounded-xl { border: 1px solid var(--line); border-radius: 1.5rem; }
@@ -480,65 +476,67 @@
         .mt-stack { margin-top: .55rem; }
         .btn:active { transform: translateY(1px); }
         .btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; transform: none; }
-        .btn-sm { width: auto; padding: .5rem .85rem; font-size: .8125rem; font-weight: 600; border-radius: .65rem; }
+        .btn-sm { width: auto; padding: .5rem .85rem; font-size: .8125rem; font-weight: 600; }
+        .btn { font-family: var(--font-display); }
 
-        .btn-primary { color:#fff; background: var(--marigold); box-shadow: var(--shadow-sm); }
-        .btn-primary:not(:disabled):hover { background: var(--marigold-600); }
-        .btn-success { color:#fff; background: var(--teal); box-shadow: var(--shadow-sm); }
-        .btn-success:not(:disabled):hover { background: var(--teal-600); }
-        .btn-secondary { color: var(--ink-2); background: var(--paper-2); border-color: transparent; box-shadow: none; }
+        .btn-primary { color: var(--on-primary); background: var(--yellow); box-shadow: var(--shadow-primary); }
+        .btn-primary:not(:disabled):hover { background: var(--yellow-600); }
+        .btn-success { color: var(--green-ink); background: var(--green); box-shadow: var(--shadow-sm); }
+        .btn-success:not(:disabled):hover { background: var(--green-600); }
+        .btn-secondary { color: var(--ink); background: var(--paper-2); border-color: transparent; box-shadow: none; }
         .btn-secondary:not(:disabled):hover { background: var(--paper-3); }
-        .btn-danger { color:#fff; background: var(--coral); box-shadow: var(--shadow-sm); }
-        .btn-danger:not(:disabled):hover { background: var(--coral-600); }
-        .btn-toggle-on { color:#fff; background: var(--play-grape); border-color: transparent; box-shadow: var(--shadow-sm); }
+        .btn-danger { color: var(--red-ink); background: var(--red); box-shadow: var(--shadow-sm); }
+        .btn-danger:not(:disabled):hover { background: var(--red-600); }
+        .btn-toggle-on { color: var(--blue-ink); background: var(--blue); border-color: transparent; box-shadow: var(--shadow-sm); }
 
         /* Status as a pill that only shows when there's a message */
         #status-message:not(:empty) {
             display: block; width: fit-content; max-width: 100%; margin: .5rem auto 0;
             padding: .35rem .75rem; border-radius: 999px; font-weight: 600;
-            background: var(--marigold-soft); color:var(--marigold-ink); border: 1px solid #F2D9A8;
+            background: var(--yellow-soft); color: var(--yellow-ink);
         }
 
         /* ── Animal cards: more presence + hover ─────────────────── */
         .animal-card {
-            font-size: .9375rem; padding: .5rem .8rem; border-radius: .65rem;
+            font-size: .9375rem; padding: .5rem .8rem; border-radius: var(--r-pill);
+            border: 1px solid rgba(28,25,23,.14);
             box-shadow: var(--shadow-sm);
             transition: transform .15s ease, box-shadow .2s ease, outline .15s;
         }
         .animal-card:not(.dragging):hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .animal-card.query-card {
             display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
-            background: var(--play-sun); color:var(--marigold-ink);
-            border: 1px dashed var(--marigold-600);
+            background: var(--yellow); color: var(--yellow-ink);
+            border: 1px dashed var(--ink);
         }
         .animal-card.query-card .icon { width: 15px; height: 15px; stroke-width: 2; }
 
         /* ── Habitat buttons: stacked icon + label, bigger target ── */
         .medium-btn {
             display: flex; flex-direction: column; align-items: center; gap: .25rem;
-            min-height: 50px; padding: .5rem .25rem; border-radius: .65rem;
-            border: 1px solid var(--line); background:var(--paper-2); color: var(--ink-soft);
+            min-height: 50px; padding: .5rem .25rem; border-radius: var(--r-md);
+            border: none; background: var(--paper-2); color: var(--ink-2);
             font-size: .75rem; font-weight: 600;
         }
         .medium-btn .icon { width: 20px; height: 20px; }
-        .medium-btn:hover { background:var(--surface); border-color:var(--line-2); }
-        .medium-btn.active-water { background: var(--sky); color:#fff; border-color: transparent; }
-        .medium-btn.active-land  { background: var(--play-grass); color:#fff; border-color: transparent; }
-        .medium-btn.active-air   { background: var(--play-grape); color:#fff; border-color: transparent; }
+        .medium-btn:hover { background: var(--paper-3); }
+        .medium-btn.active-water { background: var(--water); color: var(--blue-ink); }
+        .medium-btn.active-land  { background: var(--land); color: var(--green-ink); }
+        .medium-btn.active-air   { background: var(--air); color: var(--blue-ink); }
 
         /* ── Habitat slider: water→land→air gradient track ───────── */
         #z-slider {
             -webkit-appearance: none; appearance: none;
             height: 8px; border-radius: 999px; margin: .6rem 0 .35rem;
-            background: linear-gradient(90deg,var(--sky) 0%, var(--sky) 28%, var(--play-grass) 50%, var(--play-grape) 72%, var(--play-grape) 100%);
+            background: linear-gradient(90deg,var(--water) 0%, var(--water) 28%, var(--land) 50%, var(--air) 72%, var(--air) 100%);
         }
         #z-slider::-webkit-slider-thumb {
             -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
-            background:#fff; border: 2px solid var(--ink); box-shadow: 0 1px 4px rgba(33,30,26,.3); cursor: pointer;
+            background: var(--surface); border: 2px solid var(--ink); box-shadow: 0 1px 4px rgba(33,30,26,.3); cursor: pointer;
         }
         #z-slider::-moz-range-thumb {
             width: 20px; height: 20px; border-radius: 50%;
-            background:#fff; border: 2px solid var(--ink); cursor: pointer;
+            background: var(--surface); border: 2px solid var(--ink); cursor: pointer;
         }
         .slider-key { display: flex; align-items: center; gap: .25rem; }
         .slider-key .icon-inline { width: 13px; height: 13px; }
@@ -559,8 +557,8 @@
             -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
             border: 1px solid rgba(255,255,255,.08);
         }
-        #view-3d { background: radial-gradient(120% 120% at 50% 0%, #2B2722 0%, #15120F 72%); }
-        /* Desktop canvas height — ID selector wins regardless of source order
+        #view-3d { background: var(--ink); border-color: var(--ink); }
+        /* Desktop canvas height – ID selector wins regardless of source order
            (the .md-h-500 utility is declared before .h-400, so it would otherwise lose) */
         @media (min-width: 768px) {
             #canvas, #view-3d { height: 620px; }
@@ -593,7 +591,7 @@
         }
         .fp-tooltip {
             display: none; margin-top: .4rem; font-family: var(--font-mono);
-            font-size: .75rem; color: var(--ink-mute);
+            font-size: .75rem; color: var(--ink-3);
         }
         .fp-tooltip.show { display: block; }
         .fp-sim { margin-top: 1rem; }
@@ -603,25 +601,56 @@
         }
         .fp-sim-fill {
             height: 100%; width: 0%; border-radius: 999px;
-            background: var(--teal);
+            background: var(--blue);
             transition: width .35s ease;
         }
-        .fp-sim-verdict { margin-top: .4rem; font-size: .9rem; font-weight: 650; }
+        .fp-sim-verdict { margin-top: .4rem; font-size: .9rem; font-weight: 650; color: var(--ink); }
+        .fp-sim-verdict.is-near { color: var(--green); }
+        .fp-sim-verdict.is-mid  { color: var(--ink-2); }
+        .fp-sim-verdict.is-far  { color: var(--red); }
         .fp-callouts { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
         .fp-chip {
             display: inline-flex; align-items: center; gap: .35rem;
-            font-size: .78rem; font-weight: 600; color: var(--ink-soft);
-            background: var(--paper-2); border: 1px solid var(--line);
+            font-size: .78rem; font-weight: 600; color: var(--blue-ink);
+            background: var(--blue-soft);
             padding: .35rem .65rem; border-radius: 999px;
         }
-        .fp-chip .icon-inline { width: 14px; height: 14px; color: var(--brand); }
+        .fp-chip .icon-inline { width: 14px; height: 14px; }
+
+        /* ── Reveal / tick fade (fades only) ─────────────────────── */
+        @keyframes eduFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: eduFadeIn .5s ease both; }
+        .tick-fade { animation: eduFadeIn .7s ease both; }
+
+        /* ── Shelf counter ───────────────────────────────────────── */
+        .shelf-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; }
+        .shelf-head h2 { margin-bottom: 0; }
+        .shelf-count {
+            font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .08em;
+            text-transform: uppercase; padding: 4px 10px; border-radius: var(--r-pill);
+            background: var(--paper-2); color: var(--ink-2); white-space: nowrap;
+        }
+        .shelf-count.is-done { background: var(--green-soft); color: var(--green-ink); }
+
+        /* ── Resume banner (solid blue block) ────────────────────── */
+        .resume-banner {
+            background: var(--blue-soft); color: var(--blue-ink);
+            border-radius: var(--r-md); padding: .8rem .9rem; margin-bottom: .75rem;
+            font-size: .875rem; line-height: 1.4;
+        }
+        .resume-banner .resume-actions { display: flex; gap: .5rem; margin-top: .6rem; }
+        .resume-banner .btn { width: auto; flex: 1 1 0; padding: .55rem .8rem; font-size: .8125rem; }
+        .resume-banner .btn-on-blue { background: var(--surface); color: var(--ink); box-shadow: none; }
+        .resume-banner .btn-on-blue:not(:disabled):hover { background: var(--paper-2); }
+        .resume-banner .btn-ghost-on-blue { background: transparent; color: var(--blue-ink); border-color: var(--blue-ink); box-shadow: none; }
+        .resume-banner .btn-ghost-on-blue:not(:disabled):hover { background: var(--blue-600); }
 
         @media (prefers-reduced-motion: reduce) {
-            * { transition: none !important; }
+            * { transition: none !important; animation: none !important; }
         }
     </style>
 </head>
-<body>
+<body class="edu">
 
     <!-- Wireframe icon sprite (line icons, inherit currentColor) -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -665,15 +694,13 @@
     <!-- edulab branded top menu -->
     <header class="edu-header">
         <div class="edu-header-inner">
-            <img class="edu-logo" alt="edulab" src="edulab-mark-teal.png">
+            <img class="edu-logo" alt="edulab" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6CAYAAACI7Fo9AAAcIElEQVR4Xu1dTXIcR3bOLACUFzMkvRVHYpOSIxyhhaATCDoBwaXDC4InIHQCgScgdAKBO+8EHsCh1gkGs5sIi2CDIrg1OB5HjAmyyi+ru4Hq6qrKn8qsyp8PEfYw1Pnz3vfeVy/z5R9n+AMCQCB6BHj0GkJBIAAEGIgOJwACCSAAoidgZKgIBEB0+AAQSAABED0BI0NFIACiwweAQAIIgOgBG7koitJ+nHP65/zfyz/x30xUq7ezbN+kLdTxBwEQ3R9bNEoiiGdKWteqVT80rvtC+/0QANH74We9dsjkqY4GfP04WTdYIA2C6B4YyueobQOe2PWzgZHrNkB01wg3tJ+y44c8YhnBVax1CaJbg7K5ITh2O8Apf/Acu91a8yC6I8ThxHrA4oOoh5duaRBdFzGUd44APpL2IQbRe2KKSNQTQEl1kN4OviC6IY5wQEPgDKvhg2oI3KIaiK6JHwiuCZjl4sDfDFAQXRE3OJgiUAMWg03UwQbRMUdU9xaUDBYBED1Y00FwIKCOAIhewwrDQXXnQclwEADRw7EVJNVEAB/ta8CSJzqcQZM9gRWHfecGS5rocILAWNtD3NRtnSTRUzd6D76gaqAIJEd0kDxQT7Uodoo+kAzRUzSuRW6gqcARSILoIHngXupQ/FR8I2qip2JEhzxIoukU/CRaoqdgvCRYCCWtIBAd0XGc0YpfJNtIrAEiOqIn66FQ3BoCMZI9GqLHaBxrnouGtBGIzZ+iIbq2JVEBCCggEAvhgyd6LIZQ8DkUAQLGCARLdBDc2OaoaIBA6P4WLNENbIUqQKAXAiGTHUTvZXpUTg2BUMkOoqfmqdC3NwIhkj0YoocIbm+PQgPeIhCaPwZB9NBA9dY7IViyCHhPdJA8Wd+E4hYR8J7oFnVFU0DACQIhBCNviR4CeE68Bo0GiYDv/uol0X0HLUhPhNDOEfDZb70kunOLoAMg4AgBX8kOojsyOJpNFwEfyQ6ip+uP0NwhAr6RHUR3aGw0DQR8QcALovv29fPFOJADCNhCYHSig+S2TIl2fETAF/8eneg+GgcyAYHYEADRY7Mo9AECDQiA6HALIJAAAqMQ3Zd5SwL2hYpAoERgFKIDeyAABIZFAEQfFm/0BgTYGCPaQYk+hoLwKyAABDB0hw8AgVEQGDroDRrRR0EUnQIBTxEYkuyDEH1IhTy1KcQCAqMiMAjRR9UQnQMBjxEYKgg6J/pQinhsS4gGBDoRGIIjzokOGwMBIDA+AiD6+DaABEDA+dq6M6IPMRyBfwABIKCGgDOiq3WPUkAACAyBgBOiI5oPYTr0AQTUEXBCdPXuURIIAIEhELBOdETzIcyGPoCAHgLWia7XPUoDAca+nHz2IM/znYKzbcJjm1LQtxnnU4EN5/z4Jtt8fjKbXaSClYtgaZXoLgRMxbgp6vnF5M6jvCgOWMEmMv0540enr88fy8rF8rttLlkjum3BYjEY9FhHYHsyuf234v1PRcF2dfDhGf/+dHZ+qFMn1LK2+QSih+oJgcotSP6uuPyFhudimK71x7Ps6enszYFWJRQuEbBGdOAJBFQQuHf3jiD5TmNZzn+lYfyMIveMItqTcq5e+dvIsu9+m72ZqvQTQxmbUd0K0W0KFIOBoEMzAvcnfzoo8vyHhl9ffJLd2P/rbDYTv305+dPOxzz/ZaUcfQRenZ03fyAAuBQBK0SX9oICySOwGLK/qkfppnl3U9RPLZovHcZWEO1NdFuCJM+EyACgqPxtVaU8L3YLVuxX/xtl0n+kTPrKf0M0d+MIvYnuRiy0GhIC/zK5s/0xLx4UnO+qJtloffzdTb41qa+PI5q7sXwvoiOauzFKKK3qrIPXdUI0V7eyDZ71Irq6qCgZEwJfTD7bzYuPz1Q2urTp3TTnRjR35yUgujtso2z5/ud3ntXn2iaK1okuhv8f8uLPtUz7xSd865tlNt6kn1jq9I3qIHosnuBYD6WNLpyd8YIfs4zNMsZPliLlrNgu8uJZVcQ60RuTcKIC5xc0nz+gjTI/OlYx6uZB9KjNa0c5Ocn580+yrYOmyNs2j28Zup9QMu/rRqnpkAtF98cpR/c+UR1Et8OFqFuhufOfW7LpKxtdqiDIEnWbGf/mv2bnV1Ff1C33wOeXBzQ1eNJC9qSj++BE79Nh1IyIULm23WxNWXOhvlKijvO/0C631r3u5TC+yI8o2Xe3CVLsedd3NER0fcySqdGYICPts4w/fjk7P6oCsRje/9y6j/2qMH9+K9val50vl0X3LNt4+HL2+3EyxlgoahpkQfTUPEVD3+YhO3/+6vX5XgPJJSfS2ufxXSK1RndK0m1y9l19+K+hXpBFByO6aUdBopqw0OUQPP/48woEDQdL+iTqVOFd9DFdS9RxfnKLb30nGx2o9hNzOUT0mK3bQ7d7n38qhsUPqk00Zcrv3/3058YLJOijQFnyPVtZ8vllFZfi+Oqtqkycs+PTs7cPe6gaXFWTYAuiB2dm9wL/62Qy+b/8/ataTy9evX67ciNM29q3q5tg2nIGSM7JfQJEl2OUXIn7kzv79Q0uTcmvpi2rTYk6mwDSst0enYT7qd5mqsk5VWy1iG4yZFAVBOX8QYC2uR5W17LFSbPTs/OV214ao/5Al0Pc+/zOEWPFo1r+IMnknKrXaBFdtVGUCxsBitQi8XV9nryBwE2RdcioSjKu76JLKDmnG3SVia7bcNiunrb0lIgrVhJeDZcyNkVVmsMr+1NfhFNPzunycTDD9DUs6g+HwDrR169ZVon6JhJ/9dVXf/jH/178+0rdDf6fL1+++a3eHpJz6giD6OpYJVGyKZPefADlU7r/rfrwwvpGGhPA7t+//3nx4R9n1bpZxv7t5eztfzS1h+ScGsoguhpOyZRSJrrC8N4ENF2iiz6QnJMjDaLLMUqqRFOEvJXd+Ofq7rOmjLutZTUTopdkTzA5pzNPVyK6ToNJsSJCZZtOq9WTbKpR3wQeU6KnnpyTYQ2iyxCi34UT/Z19+Fq8+Elv22wXjNOacjG5mqNyNqOrUGacFRf0306yLJvSiyK/KjTtXZE60ZvW0JuiPj3AcM/Wdlci+8o219PT03cqQCE5146SEtFVQI6tjCD3/7DLBzSa2dV9DHCJhdiHLZ79pSOdz0PBRyWbrhL1x9IXyblm5EH0Gi7zc9Dvn9Ad5fv1V0WMnVfce1YUhzezGz/6ftJKhehryS+6K+7V2duJMT6WKyI5tw4oiF7BZH79ETu0RvA63kT4jLN9nyP8vbury2ZNN8mofAwsc1e7uVSSc6r5MynRVRvStoRHFdRvRyGh6Rok+v8XQnwalk/F/xJGOwt1brdebljRVwzpb/Ibj32M7kq74mofA0Ji7TKKsc1b2jR//9/r39r0jrWWviozSOxELxM4BRO3o6wc2qjh8oKWj4632NZUlnASS0/v2eUunf4S5F85z73Spqc3pCjtinO0hi7zRdnvX04+e0AJ092CEqZdT0OleKxVSnQZuCH/XiZuCkYvjrSRXO1+szYM5uvNlwdrJ62WFYjsG5w/9OXNb5VlM5dr6Ca+JGSmY6uP6LTdnk79IQ/g6MjlqmyyRG/Lzi6Abr3G2MQQC3IctkV4W5tNTGSr1lEhukqZvnKo1J/fJUePQhRF622yne3QRzalV2CSJHoXyV2Sbqx+VYgjyqjsinO9hi6TtfxoFpc/yW+blbUk5q3rzzbLa4VZIjmit5FNbAzZ4GzH9a2i5VCzKI7rd5+F6T5zqYc6nkrr90+KPBcjo+4/Oj/PaeMSzcWnYhPTJtuc/RMlUNfunBvoogyZuEP8nhTRxyb50qDle+IFm0ZB9gHW0JVWRYi0tHR59Ee2ddy2mhHCsqAJ6VUS5skQ3SbJ55n1Dw9YTo8H8vlRTYogM5bxkxts84UsMy/KR0N2zai4eJjhmcCNEpFPZYlI6XXS1D+1cyBrR2AeK9FVPg5JEH0xrxPvh60soekO10uC55c/SDO8tL6u4sRRkF2T6PVHIbpyIp1LnzSS2ODZngrBl0QA0Vs+CSpDApWvydhl2q4l1km8yZfi1rWkr+jB6eu3T7v0X+yp36WDMuXIYPlXbsKp3tsmRg10pdPYWBZFvrfyJpou0Wtr8EKfjieeWl5/MVv2BNEjJ3oZiYvLk7U5seKmFclSXCf3KLN7dPr6/LEuQX09ONKXLPUNOUtcqmTvGq7rfJzrmPeVXdeGPpXvHLrHEtEF4K1klZBdSnKKaKJ9AnK7LblmQvbUiF6N7HTd9E9N06M+JBftg+g+fXocyqJL9q4EHu1XF4dTjqriLjZxiEMxX9fV0CV7ikSffzD5kQuSg+gOieVj06pk7yj3F3rYb6dtCWd+mOKS1nprDwwsnFh1GJ8q0Zt8xtbe9Jgjumz0nUTWve48MrLnNAxvevZHnFzrInm1n8Yz0RpkB9EXaGom+7qCS8xElwXVJIkum7M3HnLRIPkS9Dayb2b8G9kOvFSILrah0pq6WGFYn+7QbsWbfGti6zgviC77HET6uzTRttTbgORdZFcZiiZDdFoyvMk2D98Vl+vvnxOIfRNwSzss1uTFHvnrQzAWRwtjUwRDd4kFpGTvQfJrssufOKqLmRLRT2dvDhZLatbIXm5GYvxbVuQ7tEdBjBjW7xsA0cf+Pg3bv2niTVVKlVtbUie60L8P2ZWIvW6wtTffVW3qWzlEdEWLrJHdQiS3HdHrDykoqma1mMlHazVJ2T26USW7IbFXsEjp8olkk3FN3r9wnl1aGru4ybaOrCWBDK5e+mLy2W6ef/y5KifP1h87tMpi6TSnv0wqH4oustPKx1QEf9MLPMX5Bop+UyL50cvZ78dD4jdmXyD6AOirOHddjMbLDRW37LpQqe2Aie7DDapYdJJdQ8ElsekjOd1gbCpb7dBo2quiGLp7YA5V566L2rEWfyguqxxKNdpTIC5cpMMs9YSW/u2vOliYkD0VYtdtD6IPxYaOfnScu9pM23tiHqgkrrp+d4NvbaucvdeZozeObFqW3kTZVIkNovvAgpoMpkQXzfh6Zt00kWWCxSKyH4tjuyC2mYNjjm6Gm1YtE+eudjCfHxfk6OyuVscOCute1rE+HdHfU+BAjeiaxNDdA5P2JbpQoRzGsw/7axc/DKUf3ejCeXYkdrH1WY2wgcVQKsfUDyL6ANa07dwiws+fbh7mT9ykaitbbRuLYRAIvxcQfQAbwrmvQQYWAzhcQxfJ3DAzDrzzXuHcIPqY/if6RkQfwAIgOog+gJt1doGIPoAFQHQQfQA3Myf62MLF0j+IDqKP7csYug9gARAdRB/AzRDRxwYZRAfRXfqgbLMMknEu0a+0PRbR6frpb+nq5EmRFxMhTsHpppXFX/lWHCvovbjsImPshF4cPdPdt24C31hYmMgaSh0Q3RNLDeXc5b74nD1aXLZ4fTeaKg6czXjB6ax2dvzb7PcXqtV0yg2FhY5MKZSVztFVvhYpANVHR5fOPX+d9P2T+THS+cuuVv7o7DtF/eMb2dZTm5HeJRZW9I60ESnRI9V7ULVcOPfi+eEfms+JW1ZP8XVYlV5dYKHSb+plQPQBPMC2c9MNsU9opHWgdZ0S3YFHql6sqFt7rVUGhXgu6Wa29T0OtciQ8u93EH0Am9gi+uKd959X7iZvkp9ITcPuKd0fP91iGyddQ28xMvg7+7BNr9PsND3VvNY8Dekznj02vW/NFhYDmC2ILlSn1iC6BXMKAn5kl7fbTnjZcG7Z++zinDjN0Y82MnbU56TZ8r32vGD7Ta+nLOGi6H5I0f2pbnRXxUKGqQWzRdEEiD6QGVeuiaa5LL3N9rDu/KrO3Sby/c8//aFg7KA5ePN34mXXP7KtY13SySBavA4rpgjfNpbl/IT0/U6nXxUs6NnkZ7QsuF/22YKpTHb8voqAUkRX/WqkBm7jww8Nzq/i3O0kb34rvOQAvVtGUfVAh2gmNhJ6FgU7bHz/XZPsMiwa30bX7MNEx9jrgOiGFu58yonWozc5f7gcQsucW5fkYpiecb772+zN1FB87WrVe9sa5u3Kkb0Li0aSX80V9EcP2kpGXEGJ6BHrb6Sa9L22+ZDzYoPILshoQvRWp7f4goyJ8iTXIQ2rn5iSvQmLxSOLvygkGZU/KCa6hVZHZ6QNomtaV4nklTbFa6D1t9Zlr6m2Rzb+/Fa2te96qC6DpOOtOikR60Snvl7QHORr5c0+GMZfmccJ0XUalTlKqL93PcZICbEjctaDxnlsTeEuoneR/NXr8z1fsDMlewPRW1Tiz+c/FI9MRw++YOWDHIjoilZQeXFV9Q72NqKHQvIlZCZkVyF69Y25ttdqaGokHT0omjaJYiC6gpmbHjwsqzXMl1WeEWoiemgkNyV7F9FFkpGulN6rb8ZpfZqKs+PTs7cPFUyYfBEQXcEFyDnFO2cPVopSso3WkO81zZcXDyQerdVZNkDRaJOzx8usfKgk1yH71d785fp4HXe6N55WKnY7Nh2t24DaePX6bZI+rDuVThIkBW6vFKG95QdFnv+w7pvde7/vT+7s01nwZ239id1l9NttymLvrZfRf8BQVy+b5buG8Rlnh7TT7rBjb/4Levt9ry3J2N42O3t19nZiU49Y29Iiuu5XJBbQJO91d84VF88NU6Ku+Fodj7BILo3sLYq3DdWrxVd2yVV+6Ps0lLot/CtpwkMtovun8rAStSeGVjfINEnVNioIPZLX5VdefuT810/41l7bgZvFUF9shV0f7UiG+cN6xfC9gegDYN6RBb7aINMmxmLvuBjCtkf3+YUP4nDK8z6HUwaAYqWLxdtwj+htODoM034BRnn4hrOD09m5mLY0/i1GUM0baEbeMDQ0rk39gegDWaErOot59+nr8++7RJmfRBPnySWvo1LSTsxv6cDKi7E3yXR9vGhD0KPmPMNqLbHaIHuksVzhKPKfGufzILmxh2Pobghd91731ax6UxfL11HJoemF1OJWpxiLa514xqY+kF5cOknk3i14sau2o40//4QO38jOxf8tv2weqpfghJm3MHSv1mom0bxEz0QQ085M+vK5jhiKU2Q+biMqRbD909mbH7t00CL8siGK9Jz6pUscp7SX/lfXGImz4e/ZhwesyOlyCrar3h9/vpHxI9nhm/mURkTx5iG/bMuwujzplgTRe9q+81RX+SnlU0o6PZZdsHh94YPCkL4usyC+uLq5YCdZtkH/zs9M5veC0B/Yh7t5nu+Q4BO6j25CIw76t/rf8gIMulTyUEVniuJ01n5x9rzWzRin9NQ1DaukEdHDUnEYaWVZdZ0bWRY78fZI8tVNOqaq0IeAqq7eF7dsS5PIrSKI66tov/9NtnWkkk+gqc+jPmvrplCEXK/PSBpEt2j5+Zp5cdyaZCvn2gUl694+Ven2KsrTfNga6VU6Vi2zIPcNut1GFr2XTcqG6eUgKOPfd2XlVcVDuWsEjIne5+sSswHm218vaemo4dTVUnG6mIIujjh4OTtfnNCSI3JNerbDOA2nZRl7eZPaJcRQmuxOl07yqQ65RUeLjUPPOqcC9OGgrcF7JtMObWUCq9CXb8ZEDwynwcVVWzOnl1F4dkhLTs9VhrtVJebE/7hDW3N3aC69TYbclmbvdVGgTS30QZlllO0XzzaZEPDLyWcPKNEmLprcaeteZW1dV3SUX0UARHfsEZ33rV1F+PkmGUpg/ag6BG4TW0TOgvHb4vrmZZny7TWRWGv4I5JNrwcaZVLv4g9s80T3w7P+Ebp8sNgr0Nhvpc9B7r1zbGbvmwfRBzDRYjvnQeMVTLX+KaF1TOQ79mG9XBcaEb0pY0/r67QEVxS3O+vTaIGG6fsmowRduUIv33fYLvQH0Qf0gvIBhvzyoHP+XpEnBNJrkbv0OP4r3aV3IFtbH9AsSXTVm+g2vjZJIF1RcrEBhR5FVNgVdz28n1LGXrx0Osgmma6pwUfGv2V5sa0Uua8aUts8k5ovyPS1xa/eRJcJit/bEVjuiqODIOIl1LtaWNHcmub1tEEmm9II4cLFDrnFfP9WuYGGEn4096dsv2RIvqaEfPurlt6JFQbRIzP4fJNMvkvD9V3j7Dmt0xMstD2WzYj89H/zP7FbTnwMmiCb74K7GjbcFhl8Kks74tpPoEmhp+E5HcY5cvF6jLRvFGhEABHdQ8dYHJjxc5NMG14Gm2c8hD5akawR3dYQI1qkDRRb3SRDkVbrlhqDDjWq9Nk8o9ENilpCwBrRLcmDZjoQqG2SEfNljeupekJLt7qwgvICGTvZYGyKZbGeeA5c3SrREdUHth51t7JBJi+qc2y95B61VUZpmuOL3XC0zXVGB3HKDTRYChverrZ7tEp028KhPXsILD8I1Rb77oCzJx1aqiLgImBaJ7oLIeEGQAAI9EPAOtH7iYPaQCBtBFwFSidEdyVs2i4A7YGAOQJOiG4uDmoCgXQRcBkgnRHdpdDpugI0jxUB13xxRnRhENfCx2p06AUEbCPglOi2hUV7QCBGBIYIiM6JPoQSMRofOgEBmwg4J7pNYdEWEIgNgaEC4SBEH0qZ2JwA+sSNwJC8GIToSMzF7bDQzn8EBiO6/1BAQiAQLwKDEn3IoUq8JoNmoSMwBg8GJTqG8KG7KOQPFYHBiQ6yh+oqkNsGAmNEcyH3KES3ARjaAAKhITAWyUH00DwF8gaLwJgkH53oYysfrNdAcCCgicDoQ3eQXdNiKA4EDBAYnegGMqMKEAgGAV8CmRdE9wWMYLwHggaBgE9+7QXRseQWhN9CyIAR8IboIHvAXgTRvUfAK6KD7N77CwQMFAHviA6yB+pJENtrBLwkOsjutc9AuBYEfEq+1UX0luggO/gUEgI+k1zg6DXRQzI0ZAUCPiMAovtsHcjmPQK+R/IlgCC6964EAX1FIBSSBzd0DwlYX50TcqWJQHARHWRP01GhdT8EgiM6svH9DI7a/RAINdAESXSQvZ+zorYZAqGSPLg5et08IQNv5mqoNQYCMfhZsBF9DIOjTyAQKgIgeqiWg9zOEYghkke5jh6TYZx7MTpICoHoIjrInpT/OlE2Rh+KjuhOLI9Gk0AgRoJHOXRPwhuhpBMEYiZ58MtrKhaP3YAqGKBMOwKp+AeG7mBBsgikQvIkInrVi1MybLLsVVQ8NV9ARFd0DBSLA4HUCJ58Mi5Vg8dBVzMtUrY5IrqZz6BWQAikTPDkIzrm7gEx1VBUQfAyEcV5YdhENNUQ0SumxJc/Dr+GHdftCKLXMEEUiIPs0GIVARC9xSNA+LCogijebS8QXeLPcCC/CQ/7qNkHRFfDicGhFIEaqBjsoQc0iK6HV0l4ZHI1QbNUHNibAwmim2OHmgMhAIL3BxpE748hWnCAAMhtF1QQ3S6eZWuYPzoAFU32QgBE7wUfKttAANHbBopYXnOPokIPiPKrIAEPBaexWAQR3SKYaKodAUTtcb0DRB8X/6s5vfhHTIcvQGwPHKsiAojulz2upAmNKKHJ66nZnYkFojuD1n7Dy3ntWPPbar9jyWAf1TRaBNEjtnP9w1CNust/xzZliNicvVQD0XvBh8pAIAwEQPQw7AQpgUAvBED0XvChMhAIAwEQPQw7QUog0AsBEL0XfKgMBMJAAEQPw06QEgj0QgBE7wUfKgOBMBD4f4fKYfp9jVxvAAAAEGRlQkcxNTk4NUQ2OTcwRjYzNDExig0y6AAAAABJRU5ErkJggg==">
             <span class="edu-wordmark">edulab</span>
-            <span class="edu-tag">demo lab</span>
         </div>
     </header>
 
     <div class="edu-page">
         <header class="edu-hero text-center">
-            <p class="edu-overline mb-2">Interactive demo · 6 min</p>
             <h1 class="app-title">Animal embeddings playground</h1>
             <p class="edu-lead mt-3">
                 Position each animal by size &amp; environment, tap it to set its habitat (water/land/air),
@@ -709,19 +736,12 @@
                 <div id="view-3d" class="hidden relative w-full h-400 md-h-500 bg-slate-900 rounded-lg overflow-hidden border-2 border-slate-700">
                     <canvas id="scene-3d" class="scene-3d-canvas absolute inset-0 w-full" style="height:100%;"></canvas>
                     <div class="scene-legend absolute text-slate-300 pointer-events-none" style="top:.5rem;left:.75rem;">
-                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--sky)"></span>Water</div>
-                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--play-grass)"></span>Land</div>
-                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--play-grape)"></span>Air</div>
+                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--water)"></span>Water</div>
+                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--land)"></span>Land</div>
+                        <div><span class="inline-block w-2_5 h-2_5 rounded-full align-middle mr-1" style="background:var(--air)"></span>Air</div>
                     </div>
                     <div class="scene-hint absolute text-slate-400 pointer-events-none" style="bottom:.5rem;right:.75rem;">drag to rotate · scroll to zoom</div>
                 </div>
-            </section>
-
-            <!-- Semantic search (revealed after generate) -->
-            <section id="query-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
-                <h2 class="text-xl font-semibold mb-2 text-sky-600 sec-title">Semantic search</h2>
-                <p class="text-xs text-slate-500 mb-3">Drag the query marker onto the canvas. Its nearest neighbors are your search results — this is how AI retrieval works.</p>
-                <div id="query-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
             </section>
 
             <!-- Inspector -->
@@ -767,20 +787,37 @@
             <aside class="lg-w-1-3 flex flex-col gap-6 md-gap-8">
                 <!-- New Animals shelf -->
                 <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-semibold mb-4 text-sky-600 sec-title">New Animals</h2>
+                    <div class="shelf-head">
+                        <h2 class="text-xl font-semibold text-sky-600 sec-title">New Animals</h2>
+                        <span id="shelf-count" class="shelf-count" aria-live="polite">0 / 6 placed</span>
+                    </div>
                     <div id="new-animals-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
                     <p class="text-xs text-slate-500 mt-2 text-center">Drag these onto the canvas.</p>
+                </section>
+
+                <!-- Semantic search (revealed after generate) -->
+                <section id="query-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
+                    <h2 class="text-xl font-semibold mb-2 text-sky-600 sec-title">Semantic search</h2>
+                    <p class="text-xs text-slate-500 mb-3">Drag the query marker onto the canvas. Its nearest neighbors are your search results – this is how AI retrieval works.</p>
+                    <div id="query-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
                 </section>
 
                 <!-- Actions -->
                 <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg">
                     <h2 class="text-xl font-semibold mb-3 text-sky-600 sec-title">Actions</h2>
+                    <div id="resume-banner" class="resume-banner edu-block hidden" role="status">
+                        <strong>Saved session found</strong> <span id="resume-when"></span> – your placements were kept.
+                        <div class="resume-actions">
+                            <button id="resume-btn" class="btn btn-on-blue">Resume</button>
+                            <button id="fresh-btn" class="btn btn-ghost-on-blue">Start fresh</button>
+                        </div>
+                    </div>
                     <button id="generate-embeddings-btn" class="btn btn-primary" disabled>
                         <svg class="icon"><use href="#i-sparkle"></use></svg>
                         <span class="lbl">Generate embeddings</span>
                     </button>
                     <p class="text-xs text-slate-500 mt-2" style="font-style:italic;">
-                        Here <em>you</em> are the embedding model — in real AI, a neural network learns these numbers from data.
+                        Here <em>you</em> are the embedding model – in real AI, a neural network learns these numbers from data.
                     </p>
                     <button id="compare-btn" class="btn btn-secondary mt-stack hidden" disabled>
                         <svg class="icon"><use href="#i-layers"></use></svg>
@@ -790,7 +827,7 @@
                         <svg class="icon"><use href="#i-refresh"></use></svg>
                         <span class="lbl">Reset</span>
                     </button>
-                    <p id="status-message" class="text-xs text-slate-500 mt-2 text-center"></p>
+                    <p id="status-message" class="text-xs text-slate-500 mt-2 text-center" role="status" aria-live="polite"></p>
                 </section>
             </aside>
         </main>
@@ -803,14 +840,14 @@
                     <span id="embeddings-meta" class="text-xs text-slate-400"></span>
                 </div>
                 <p id="embeddings-desc" class="text-sm text-slate-600 mb-3">
-                    Each animal is a 3-D vector <span class="font-mono">[x, y, z]</span> — x&nbsp;=&nbsp;environment, y&nbsp;=&nbsp;size, z&nbsp;=&nbsp;habitat.
+                    Each animal is a 3-D vector <span class="font-mono">[x, y, z]</span> – x&nbsp;=&nbsp;environment, y&nbsp;=&nbsp;size, z&nbsp;=&nbsp;habitat.
                     Click a column to sort, or a row to inspect on the canvas.
                 </p>
-                <div id="compare-notice" class="hidden mb-3 p-3 rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-800">
-                    <strong>Model positions</strong> — vectors computed from 18 biological features
+                <div id="compare-notice" class="hidden mb-3 p-3 rounded-lg bg-amber-50 text-xs text-amber-800 edu-block">
+                    <strong>Model positions</strong> – vectors computed from 18 biological features
                     (class, habitat, size, domestication, locomotion…) projected to 3-D via PCA.
                     Explained variance: PC1 34 %, PC2 22 %, PC3 13 %.
-                    Axes have no simple interpretation — that's the point.
+                    Axes have no simple interpretation – that's the point.
                 </div>
                 <div id="embeddings-empty" class="text-sm text-slate-400 italic py-6 text-center">
                     Place all animals and press "Generate Embeddings" to see their vectors here.
@@ -834,7 +871,7 @@
             <section id="bridge-panel" class="hidden bg-white p-4 sm-p-6 rounded-xl shadow-lg">
                 <h2 class="text-xl font-semibold text-sky-600 mb-1 sec-title">What a real embedding looks like</h2>
                 <p class="text-sm text-slate-600 mb-3">
-                    You gave each animal <strong>3</strong> numbers. A real model gives it a long list — here are <strong>48</strong>.
+                    You gave each animal <strong>3</strong> numbers. A real model gives it a long list – here are <strong>48</strong>.
                     Pick two animals and compare their <em>fingerprints</em>: similar meaning makes a similar pattern.
                 </p>
 
@@ -867,7 +904,7 @@
                 </div>
 
                 <p class="text-xs text-slate-500 mt-3">
-                    A real model learns these numbers from data — nobody labels them. The 3-D
+                    A real model learns these numbers from data – nobody labels them. The 3-D
                     <strong>"View model positions"</strong> view is just this long fingerprint squashed down to 3 numbers so it can be plotted.
                 </p>
             </section>
@@ -878,8 +915,8 @@
                 <ol class="prompts-list text-sm text-slate-700 space-y-2">
                     <li>Why are Cat and Dog nearest neighbors? What property makes them close in this space?</li>
                     <li>What extra dimension would better separate Shark from Goldfish than "size" alone?</li>
-                    <li>Where should a Bat go on the habitat slider — and what can't these three numbers capture about it?</li>
-                    <li>Chicken landed in the "air" group (z&nbsp;≈&nbsp;68). Is that right? Who decided — you or the model?</li>
+                    <li>Where should a Bat go on the habitat slider – and what can't these three numbers capture about it?</li>
+                    <li>Chicken landed in the "air" group (z&nbsp;≈&nbsp;68). Is that right? Who decided – you or the model?</li>
                     <li>Penguin swims and walks but can't fly; Duck uses water and air. Did three dimensions feel like enough?</li>
                 </ol>
             </section>
@@ -925,6 +962,12 @@
             const compareBtn     = document.getElementById('compare-btn');
             const compareNotice  = document.getElementById('compare-notice');
             const embeddingsDesc = document.getElementById('embeddings-desc');
+            const shelfCount   = document.getElementById('shelf-count');
+            const resumeBanner = document.getElementById('resume-banner');
+            const resumeWhen   = document.getElementById('resume-when');
+            const resumeBtn    = document.getElementById('resume-btn');
+            const freshBtn     = document.getElementById('fresh-btn');
+            const STORAGE_KEY  = 'embeddings-lab-state-v1';
             const fpSelectA  = document.getElementById('fp-a');
             const fpSelectB  = document.getElementById('fp-b');
             const fpCanvasA  = document.getElementById('fp-canvas-a');
@@ -956,7 +999,7 @@
                 Whale:     [74, 74, 90], Shark:    [95, 33, 79],
                 Carp:      [91, 44, 16], Goldfish: [88, 43,  5],
                 Elephant:  [33, 93, 48], Squirrel: [33, 82, 50],
-                Horse:     [30, 95, 30], Cow:      [30, 95, 30],
+                Horse:     [30, 95, 30], Cow:      [26, 97, 22],
                 Dog:       [29, 88, 63], Cat:      [32, 85, 72],
                 Eagle:     [12, 25, 88], Sparrow:  [ 5,  5, 56],
                 Parrot:    [ 6, 23, 37], Chicken:  [14, 50, 17],
@@ -967,7 +1010,7 @@
 
             // High-dimensional "fingerprints": 48 numbers per animal, built from the
             // same biological features via a fixed random projection (Johnson–Lindenstrauss),
-            // z-scored per dimension. Used by the interactive "real embedding" widget —
+            // z-scored per dimension. Used by the interactive "real embedding" widget –
             // similar animals get similar fingerprints, and no dimension has a human meaning.
             const FINGERPRINTS = {
                 Whale:     [-22,-41,4,15,72,-77,-47,-31,-20,16,-81,38,22,-11,33,-51,20,-7,50,99,46,-27,19,97,14,7,-84,-48,-28,-83,-17,8,99,-17,-65,-48,64,52,-76,-42,-46,36,14,-13,-87,35,3,-49],
@@ -977,7 +1020,7 @@
                 Elephant:  [62,34,-18,24,23,-86,25,-37,23,61,-26,-33,-6,9,-39,-3,26,-47,-57,52,-3,7,-22,-12,1,-3,13,-3,-19,6,17,-2,20,-44,8,2,-32,29,-70,-18,-42,17,17,-14,-38,8,-6,-44],
                 Squirrel:  [89,62,-36,14,-47,-8,22,-37,5,58,-9,-21,-28,35,-85,-30,38,5,-56,11,-70,16,-31,-3,10,10,13,16,-46,37,17,41,-23,-14,-4,-46,-73,-10,-9,-37,32,33,-27,0,41,15,3,-5],
                 Horse:     [48,40,21,34,-26,-40,30,-31,45,33,-21,-2,-40,34,-39,20,14,-6,-33,40,-4,-6,-47,-21,-20,1,24,-34,-22,60,-5,-10,16,-22,-8,35,-31,42,-27,48,-32,-27,44,-33,-24,37,-49,-54],
-                Cow:       [48,40,21,34,-26,-40,30,-31,45,33,-21,-2,-40,34,-39,20,14,-6,-33,40,-4,-6,-47,-21,-20,1,24,-34,-22,60,-5,-10,16,-22,-8,35,-31,42,-27,48,-32,-27,44,-33,-24,37,-49,-54],
+                Cow:       [55,31,25,22,-16,-45,38,-34,56,26,-15,-12,-47,43,-43,32,4,-1,-41,43,-15,1,-53,-11,-13,-8,28,-46,-12,55,3,-13,27,-29,-2,25,-38,51,-31,60,-42,-22,36,-30,-35,44,-55,-44],
                 Dog:       [28,48,22,9,-10,54,3,-3,25,25,-26,-13,-81,18,-17,15,-29,57,-2,-5,29,-33,-56,31,-46,58,-6,-19,-26,27,-50,-28,39,-23,2,-11,-6,39,24,66,-16,-21,-5,-79,10,32,-52,-56],
                 Cat:       [47,74,-4,2,-55,49,-7,0,11,16,-54,22,-77,26,-40,-20,-18,75,-8,-1,-14,20,-43,52,3,82,9,-10,-52,37,-32,-22,13,2,27,-33,-5,19,31,45,21,-19,-4,-48,67,22,-42,-37],
                 Eagle:     [-23,20,-63,-99,28,40,-83,21,-5,8,-53,5,27,-71,-9,2,-25,-40,-44,-74,8,99,63,58,88,77,36,55,-12,-18,21,-52,-50,43,66,-47,48,-69,33,-51,34,5,-15,64,41,-68,-6,42],
@@ -1013,7 +1056,7 @@
                 { name: 'Carp',     xPc: 70, yPc: 62, z: 15, color: 'bg-sky-500',     textColor: 'text-white' },
                 { name: 'Goldfish', xPc: 90, yPc: 88, z: 12, color: 'bg-orange-400',  textColor: 'text-black' },
                 { name: 'Elephant', xPc: 14, yPc: 32, z: 50, color: 'bg-slate-500',   textColor: 'text-white' },
-                { name: 'Squirrel', xPc: 26, yPc: 80, z: 50, color: 'bg-amber-600',   textColor: 'text-white' },
+                { name: 'Squirrel', xPc: 26, yPc: 80, z: 50, color: 'bg-amber-600',   textColor: 'text-black' },
                 { name: 'Horse',    xPc: 76, yPc: 34, z: 50, color: 'bg-yellow-700',  textColor: 'text-white' },
                 { name: 'Cow',      xPc: 66, yPc: 44, z: 50, color: 'bg-neutral-400', textColor: 'text-black' },
                 { name: 'Dog',      xPc: 84, yPc: 64, z: 50, color: 'bg-green-600',   textColor: 'text-white' },
@@ -1021,10 +1064,10 @@
                 { name: 'Eagle',    xPc: 16, yPc: 48, z: 92, color: 'bg-amber-800',   textColor: 'text-white' },
                 { name: 'Sparrow',  xPc: 30, yPc: 90, z: 90, color: 'bg-stone-400',   textColor: 'text-black' },
                 { name: 'Parrot',   xPc: 78, yPc: 56, z: 88, color: 'bg-red-500',     textColor: 'text-white' },
-                { name: 'Chicken',  xPc: 64, yPc: 72, z: 68, color: 'bg-red-400',     textColor: 'text-black' },
+                { name: 'Chicken',  xPc: 64, yPc: 72, z: 68, color: 'bg-red-400',     textColor: 'text-white' },
             ];
 
-            // Shelf animals — includes 2 challenge animals that are intentionally hard to place
+            // Shelf animals – includes 2 challenge animals that are intentionally hard to place
             const newAnimalsToPlaceData = [
                 { id: 'clownfish', name: 'Clownfish', z: 12, color: 'bg-orange-500', textColor: 'text-white' },
                 { id: 'seal',      name: 'Seal',      z: 30, color: 'bg-stone-500',  textColor: 'text-white' },
@@ -1064,35 +1107,36 @@
             function hideAxisWordLabels() {
                 wordLabels.forEach(el => el.classList.add('hidden'));
             }
-            function showAxisTicks() { addAxisTicks(); }
+            function showAxisTicks() { addAxisTicks(true); }
             function hideAxisTicks() {
                 canvas.querySelectorAll('.axis-tick, .tick-label').forEach(el => el.remove());
             }
             function showAxes() { showAxisWordLabels(); showAxisTicks(); }
             function hideAxes() { hideAxisWordLabels(); hideAxisTicks(); }
 
-            function addAxisTicks() {
+            function addAxisTicks(animate = false) {
                 canvas.querySelectorAll('.axis-tick, .tick-label').forEach(el => el.remove());
                 const W = canvas.clientWidth, H = canvas.clientHeight;
+                const fade = animate ? ' tick-fade' : '';
                 for (let i = 0; i <= 10; i++) {
                     const tx = document.createElement('div');
-                    tx.className = 'axis-tick axis-tick-x';
+                    tx.className = 'axis-tick axis-tick-x' + fade;
                     tx.style.left = `${(i / 10) * W}px`;
                     canvas.appendChild(tx);
 
                     const lx = document.createElement('div');
-                    lx.className = 'tick-label tick-label-x';
+                    lx.className = 'tick-label tick-label-x' + fade;
                     lx.textContent = i * 10;
                     lx.style.left = `${(i / 10) * W}px`;
                     canvas.appendChild(lx);
 
                     const ty = document.createElement('div');
-                    ty.className = 'axis-tick axis-tick-y';
+                    ty.className = 'axis-tick axis-tick-y' + fade;
                     ty.style.top = `${(i / 10) * H}px`;
                     canvas.appendChild(ty);
 
                     const ly = document.createElement('div');
-                    ly.className = 'tick-label tick-label-y';
+                    ly.className = 'tick-label tick-label-y' + fade;
                     ly.textContent = (10 - i) * 10;
                     ly.style.top = `${(i / 10) * H}px`;
                     canvas.appendChild(ly);
@@ -1127,8 +1171,96 @@
                 el.dataset.yPc = (cy / canvas.clientHeight) * 100;
             }
 
+            // Place a card from its stored percent position (used on restore + resize).
+            function positionCardFromPercent(el) {
+                const xPc = parseFloat(el.dataset.xPc), yPc = parseFloat(el.dataset.yPc);
+                if (isNaN(xPc) || isNaN(yPc)) return;
+                const W = canvas.clientWidth, H = canvas.clientHeight;
+                el.style.left = `${Math.max(0, Math.min((xPc / 100) * W - el.offsetWidth  / 2, W - el.offsetWidth))}px`;
+                el.style.top  = `${Math.max(0, Math.min((yPc / 100) * H - el.offsetHeight / 2, H - el.offsetHeight))}px`;
+            }
+
+            // ── Persistence (localStorage, best-effort) ───────────────
+            function saveState() {
+                try {
+                    const placed = {};
+                    canvas.querySelectorAll('.animal-card').forEach(el => {
+                        placed[el.dataset.name] = {
+                            xPc: Math.round(parseFloat(el.dataset.xPc) * 10) / 10,
+                            yPc: Math.round(parseFloat(el.dataset.yPc) * 10) / 10,
+                            z:   Math.round(getZ(el))
+                        };
+                    });
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ placed, generated: inspectionMode, ts: Date.now() }));
+                } catch (_) { /* private mode / quota – ignore */ }
+            }
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return null;
+                    const st = JSON.parse(raw);
+                    return (st && st.placed && typeof st.placed === 'object') ? st : null;
+                } catch (_) { return null; }
+            }
+            function clearState() {
+                try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+            }
+            // A saved state is worth resuming only if something differs from the defaults.
+            function stateIsInteresting(st) {
+                if (st.generated) return true;
+                return Object.keys(st.placed).some(name => {
+                    const def = prePlacedAnimalsData.find(d => d.name === name);
+                    if (!def) return true; // a shelf animal (or the query) was placed
+                    const p = st.placed[name];
+                    return Math.abs(p.xPc - def.xPc) > 0.5 || Math.abs(p.yPc - def.yPc) > 0.5 || p.z !== def.z;
+                });
+            }
+            function formatAgo(ts) {
+                const m = Math.round((Date.now() - ts) / 60000);
+                if (m < 1) return 'just now';
+                if (m < 60) return `${m} min ago`;
+                const h = Math.round(m / 60);
+                if (h < 24) return `${h} h ago`;
+                return `${Math.round(h / 24)} d ago`;
+            }
+            function restoreState(st) {
+                // Pre-placed animals: move to saved positions.
+                prePlacedAnimalsData.forEach(d => {
+                    const p = st.placed[d.name], el = elementsByName[d.name];
+                    if (!p || !el) return;
+                    el.dataset.xPc = p.xPc; el.dataset.yPc = p.yPc; el.dataset.z = p.z;
+                    positionCardFromPercent(el);
+                });
+                // Shelf animals that were placed: move onto the canvas.
+                newAnimalsToPlaceData.forEach(d => {
+                    const p = st.placed[d.name], el = elementsByName[d.name];
+                    if (!p || !el) return;
+                    el.style.position = 'absolute';
+                    canvas.appendChild(el);
+                    el.dataset.placedOnCanvas = 'true';
+                    el.dataset.xPc = p.xPc; el.dataset.yPc = p.yPc; el.dataset.z = p.z;
+                    positionCardFromPercent(el);
+                    placedNewAnimalsCount++;
+                });
+                updateButtonAndStatus();
+                if (st.generated) {
+                    generateEmbeddingsBtn.click();
+                    const q = st.placed[QUERY_NAME], qel = elementsByName[QUERY_NAME];
+                    if (q && qel) {
+                        qel.style.position = 'absolute';
+                        canvas.appendChild(qel);
+                        qel.dataset.placedOnCanvas = 'true';
+                        qel.dataset.xPc = q.xPc; qel.dataset.yPc = q.yPc; qel.dataset.z = q.z;
+                        positionCardFromPercent(qel);
+                    }
+                    statusMessage.textContent = 'Session restored – tap an animal to see its neighbors.';
+                } else {
+                    statusMessage.textContent = 'Session restored.';
+                }
+            }
+
             function habitatColor(z) {
-                return z < 34 ? '#2E78C9' : z < 67 ? '#4FA45C' : '#7A5AC2';
+                return z < 34 ? '#1E8FC2' : z < 67 ? '#00A651' : '#7A5AC2';
             }
 
             // ── Tooltip (now shows x, y, z) ───────────────────────────
@@ -1191,7 +1323,7 @@
                 return div;
             }
 
-            // ── Drag (pointer events — mouse + touch) ─────────────────
+            // ── Drag (pointer events – mouse + touch) ─────────────────
             function clampToCanvas(el, x, y) {
                 return {
                     x: Math.max(0, Math.min(x, canvas.clientWidth  - el.offsetWidth)),
@@ -1265,6 +1397,7 @@
                     el.style.cursor = 'grab';
                     hideCoordinateTooltip();
                     storeCardPercent(el);
+                    saveState();
                     if (selectedName === el.dataset.name) updateInspector(el);
                     if (inspectionMode) {
                         updateEmbeddingFor(el);
@@ -1275,10 +1408,10 @@
                         if (el.dataset.isQuery === 'true') {
                             statusMessage.textContent = 'Query placed! Its nearest neighbors are your search results.';
                         } else if (inspectionMode) {
-                            // Embeddings already exist — this animal isn't in the space until a regenerate.
-                            statusMessage.textContent = `${el.dataset.name} added — press "Regenerate embeddings" to include it.`;
+                            // Embeddings already exist – this animal isn't in the space until a regenerate.
+                            statusMessage.textContent = `${el.dataset.name} added – press "Regenerate embeddings" to include it.`;
                         } else if (el.dataset.isChallenge === 'true') {
-                            statusMessage.textContent = `${el.dataset.name} is tricky — where does it really belong? 3 dimensions may not be enough.`;
+                            statusMessage.textContent = `${el.dataset.name} is tricky – where does it really belong? 3 dimensions may not be enough.`;
                         } else {
                             statusMessage.textContent = `Set ${el.dataset.name}'s habitat in the Inspector →`;
                         }
@@ -1350,7 +1483,7 @@
                     const line = document.createElementNS(SVG_NS, 'line');
                     line.setAttribute('x1', from.cx); line.setAttribute('y1', from.cy);
                     line.setAttribute('x2', to.cx);   line.setAttribute('y2', to.cy);
-                    line.setAttribute('stroke', '#2E78C9');
+                    line.setAttribute('stroke', '#1E8FC2');
                     line.setAttribute('stroke-width', '2');
                     line.setAttribute('stroke-linecap', 'round');
                     line.setAttribute('stroke-opacity', `${1 - i * 0.22}`);
@@ -1436,6 +1569,7 @@
                 if (!el) return;
                 el.dataset.z = z;
                 updateInspector(el);
+                saveState();
                 if (currentEmbeddingsData.length) {
                     updateEmbeddingFor(el);
                     drawNeighbors(selectedName);
@@ -1456,14 +1590,20 @@
             // ── Status / button gate ──────────────────────────────────
             // Generate is available at any time: students can embed the
             // pre-placed animals first, then add more and regenerate.
+            function updateShelfCount() {
+                const total = newAnimalsToPlaceData.length;
+                shelfCount.textContent = `${placedNewAnimalsCount} / ${total} placed`;
+                shelfCount.classList.toggle('is-done', placedNewAnimalsCount >= total);
+            }
             function updateButtonAndStatus() {
+                updateShelfCount();
                 if (inspectionMode) return; // after first generate, the regenerate flow drives status
                 generateEmbeddingsBtn.disabled = false;
                 const remaining = newAnimalsToPlaceData.length - placedNewAnimalsCount;
                 if (remaining > 0) {
                     statusMessage.textContent = `Generate now, or drag ${remaining} more animal${remaining > 1 ? 's' : ''} on first.`;
                 } else {
-                    statusMessage.textContent = 'All animals placed — generate embeddings.';
+                    statusMessage.textContent = 'All animals placed – generate embeddings.';
                 }
             }
 
@@ -1552,12 +1692,12 @@
             function fpLerp(c1, c2, t) {
                 return [0,1,2].map(i => Math.round(c1[i] + (c2[i] - c1[i]) * t));
             }
-            // Diverging palette: sky (negative) → warm paper (0) → coral (positive).
+            // Diverging palette: blue (negative) → paper (0) → red (positive). edulab hex literals.
             function fpColor(v) {
                 const t = Math.max(-1, Math.min(1, v / 100));
-                const mid = [251, 247, 240];
-                const rgb = t < 0 ? fpLerp(mid, [46, 120, 201], -t)
-                                  : fpLerp(mid, [239, 91, 63], t);
+                const mid = [255, 255, 255];
+                const rgb = t < 0 ? fpLerp(mid, [30, 143, 194], -t)
+                                  : fpLerp(mid, [229, 50, 45], t);
                 return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
             }
             function drawFingerprint(cv, name) {
@@ -1588,20 +1728,21 @@
                 const sim = (a === b) ? 1 : fpCosine(FINGERPRINTS[a], FINGERPRINTS[b]);
                 const pct = Math.round(Math.max(0, sim) * 100);
                 fpSimFill.style.width = pct + '%';
-                let text, color;
-                if (a === b)        { text = 'Same animal — identical fingerprint.'; color = '#2F8F5B'; }
-                else if (sim > 0.6) { text = `Very similar (${pct}%) — they'd be neighbors in a real model.`; color = '#2F8F5B'; }
-                else if (sim > 0.3) { text = `Somewhat similar (${pct}%) — partly overlapping meaning.`; color = '#C9810A'; }
-                else                { text = `Quite different (${pct}%) — far apart in the space.`; color = '#D8412A'; }
+                let text, tone;
+                if (a === b)        { text = 'Same animal – identical fingerprint.'; tone = 'is-near'; }
+                else if (sim > 0.6) { text = `Very similar (${pct}%) – they'd be neighbors in a real model.`; tone = 'is-near'; }
+                else if (sim > 0.3) { text = `Somewhat similar (${pct}%) – partly overlapping meaning.`; tone = 'is-mid'; }
+                else                { text = `Quite different (${pct}%) – far apart in the space.`; tone = 'is-far'; }
                 fpSimVerdict.textContent = text;
-                fpSimVerdict.style.color = color;
+                fpSimVerdict.classList.remove('is-near', 'is-mid', 'is-far');
+                fpSimVerdict.classList.add(tone);
             }
             function fpHover(cv, name) {
                 cv.addEventListener('mousemove', e => {
                     const rect = cv.getBoundingClientRect();
                     const i = Math.max(0, Math.min(FP_DIMS - 1, Math.floor((e.clientX - rect.left) / rect.width * FP_DIMS)));
                     const v = FINGERPRINTS[cv === fpCanvasA ? fpSelectA.value : fpSelectB.value][i];
-                    fpTooltip.textContent = `dimension ${i} = ${v}  ·  (a learned number — no human meaning)`;
+                    fpTooltip.textContent = `dimension ${i} = ${v}  ·  (a learned number – no human meaning)`;
                     fpTooltip.classList.add('show');
                 });
                 cv.addEventListener('mouseleave', () => fpTooltip.classList.remove('show'));
@@ -1642,12 +1783,13 @@
                     in3D = false;
                     view3d.classList.add('hidden');
                     canvas.style.display = '';
-                    view3dBtn.textContent = 'View in 3-D';
+                    setBtnLabel(view3dBtn, 'View in 3-D', '#i-cube');
                 }
                 hideAxisTicks();
                 closeInspector();
                 view3dBtn.disabled = true;
                 querySection.classList.add('hidden');
+                querySection.classList.remove('fade-in');
                 bridgePanel.classList.add('hidden');
                 if (bridgePanel.hasAttribute('open')) bridgePanel.removeAttribute('open');
                 promptsSection.classList.add('hidden');
@@ -1713,6 +1855,7 @@
                 if (firstTime) {
                     // One-time reveal of the query card, compare toggle, bridge & prompts.
                     querySection.classList.remove('hidden');
+                    querySection.classList.add('fade-in');
                     queryShelf.innerHTML = '';
                     queryShelf.appendChild(createAnimalElement(
                         { id: 'query-card', name: QUERY_NAME, z: 50, color: 'bg-yellow-400', textColor: 'text-black', isQuery: true },
@@ -1723,10 +1866,11 @@
                     bridgePanel.classList.remove('hidden');
                     promptsSection.classList.remove('hidden');
                     setupFingerprintWidget(); // panel is now visible → canvas has width
-                    statusMessage.textContent = 'Tap an animal to see neighbors, then try the search query.';
+                    statusMessage.textContent = 'Tap an animal to see neighbors, then drag the Query marker (above) onto the canvas.';
                 } else {
-                    statusMessage.textContent = `Embeddings updated — ${currentEmbeddingsData.length} animals now in the space.`;
+                    statusMessage.textContent = `Embeddings updated – ${currentEmbeddingsData.length} animals now in the space.`;
                 }
+                saveState();
 
                 if (selectedName) drawNeighbors(selectedName);
             });
@@ -1742,6 +1886,7 @@
                 if (resetBtn.dataset.confirm === 'pending') {
                     clearTimeout(resetConfirmTimeout);
                     resetBtnToIdle();
+                    clearState();
                     initializeAnimals();
                 } else {
                     resetBtn.dataset.confirm = 'pending';
@@ -1821,7 +1966,7 @@
                     return { sx: cxC + r.x * scale, sy: cyC - r.y * scale, depth: r.z };
                 };
 
-                // Axes — labels depend on whether we're showing student or model positions
+                // Axes – labels depend on whether we're showing student or model positions
                 const axes = compareMode ? [
                     { a: [0,50,50], b: [100,50,50], lo: 'PC1−', hi: 'PC1+' },
                     { a: [50,0,50], b: [50,100,50], lo: 'PC2−', hi: 'PC2+' },
@@ -1832,12 +1977,12 @@
                     { a: [50,50,0], b: [50,50,100], lo: 'water', hi: 'air'      }
                 ];
                 ctx.lineWidth = 1.25;
-                ctx.font = '11px "DM Mono", ui-monospace, monospace';
+                ctx.font = '11px "Roboto Mono", ui-monospace, monospace';
                 axes.forEach(ax => {
                     const p0 = proj(...ax.a), p1 = proj(...ax.b);
-                    ctx.strokeStyle = 'rgba(236,225,207,.45)';
+                    ctx.strokeStyle = 'rgba(255,255,255,.35)';
                     ctx.beginPath(); ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.stroke();
-                    ctx.fillStyle = 'rgba(236,225,207,.8)';
+                    ctx.fillStyle = 'rgba(255,255,255,.75)';
                     ctx.fillText(ax.hi, p1.sx + 4, p1.sy);
                     ctx.fillText(ax.lo, p0.sx + 4, p0.sy);
                 });
@@ -1863,7 +2008,7 @@
                                 ? MODEL_EMBEDDINGS[n.data.name] : n.data.vector;
                             const tp = proj(nv[0], nv[1], nv[2]);
                             ctx.globalAlpha = 1 - i * 0.22;
-                            ctx.strokeStyle = '#2E78C9';
+                            ctx.strokeStyle = '#1E8FC2';
                             ctx.lineWidth = 2;
                             ctx.beginPath();
                             ctx.moveTo(fp.sx, fp.sy);
@@ -1881,15 +2026,15 @@
                     ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
                     ctx.fillStyle = habitatColor(v[2]);
                     ctx.globalAlpha = 0.92; ctx.fill(); ctx.globalAlpha = 1;
-                    if (sel) { ctx.lineWidth = 2; ctx.strokeStyle = '#F2A516'; ctx.stroke(); }
-                    ctx.fillStyle = sel ? '#FBE7C2' : '#ECE1CF';
-                    ctx.font = (sel ? '600 ' : '') + '11px "Hanken Grotesk", system-ui, sans-serif';
+                    if (sel) { ctx.lineWidth = 2; ctx.strokeStyle = '#FFD500'; ctx.stroke(); }
+                    ctx.fillStyle = sel ? '#FFD500' : '#FFFFFF';
+                    ctx.font = (sel ? '600 ' : '') + '11px "IBM Plex Sans", system-ui, sans-serif';
                     ctx.fillText(d.name, p.sx + r + 3, p.sy + 3);
                 });
 
                 // Mode label at bottom of scene
-                ctx.font = '11px "Hanken Grotesk", system-ui, sans-serif';
-                ctx.fillStyle = compareMode ? 'rgba(232,146,12,0.9)' : 'rgba(236,225,207,0.7)';
+                ctx.font = '11px "IBM Plex Sans", system-ui, sans-serif';
+                ctx.fillStyle = compareMode ? '#FFD500' : 'rgba(255,255,255,0.7)';
                 ctx.fillText(compareMode
                     ? 'Model (bio-features → PCA 3-D)'
                     : 'Your positions', 8, H - 12);
@@ -1901,7 +2046,7 @@
                 canvas.style.display = 'none';
                 hideAxes();
                 view3d.classList.remove('hidden');
-                view3dBtn.textContent = 'View in 2-D';
+                setBtnLabel(view3dBtn, 'View in 2-D', '#i-cube');
                 render3D();
             }
 
@@ -1909,7 +2054,7 @@
                 in3D = false;
                 view3d.classList.add('hidden');
                 canvas.style.display = '';
-                view3dBtn.textContent = 'View in 3-D';
+                setBtnLabel(view3dBtn, 'View in 3-D', '#i-cube');
                 showAxisWordLabels();
                 if (inspectionMode) showAxisTicks();
                 if (selectedName) drawNeighbors(selectedName);
@@ -1947,21 +2092,30 @@
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
                     if (in3D) { render3D(); return; }
-                    const W = canvas.clientWidth, H = canvas.clientHeight;
-                    canvas.querySelectorAll('.animal-card').forEach(el => {
-                        const xPc = parseFloat(el.dataset.xPc);
-                        const yPc = parseFloat(el.dataset.yPc);
-                        if (isNaN(xPc) || isNaN(yPc)) return;
-                        el.style.left = `${(xPc / 100) * W - el.offsetWidth  / 2}px`;
-                        el.style.top  = `${(yPc / 100) * H - el.offsetHeight / 2}px`;
-                    });
+                    canvas.querySelectorAll('.animal-card').forEach(positionCardFromPercent);
                     if (inspectionMode) addAxisTicks();
                     if (selectedName) drawNeighbors(selectedName);
                     if (fpInitialized && !bridgePanel.classList.contains('hidden')) renderFingerprints();
                 }, 250);
             });
 
+            // ── Resume banner ─────────────────────────────────────────
+            resumeBtn.addEventListener('click', () => {
+                const st = loadState();
+                resumeBanner.classList.add('hidden');
+                if (st) requestAnimationFrame(() => restoreState(st));
+            });
+            freshBtn.addEventListener('click', () => {
+                clearState();
+                resumeBanner.classList.add('hidden');
+            });
+
             initializeAnimals();
+            const savedState = loadState();
+            if (savedState && stateIsInteresting(savedState)) {
+                resumeWhen.textContent = `(${formatAgo(savedState.ts || Date.now())})`;
+                resumeBanner.classList.remove('hidden');
+            }
         });
     </script>
 </body>
