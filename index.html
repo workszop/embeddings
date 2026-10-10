@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Embedding Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
     <style>
         /* ============================================================
            edulab - Editorial Color design tokens (injected by edustyl)
            Source of truth: ~/.claude/skills/edustyl/tokens/colors_and_type.css
         ============================================================ */
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
         :root {
             /* Brand fonts */
             --font-display: 'Outfit', 'IBM Plex Sans', system-ui, sans-serif;
@@ -49,6 +51,10 @@
             --shadow-marigold: var(--shadow-primary);
             /* App roles: the three habitats (data encoding, kept distinguishable) */
             --water: var(--blue); --land: var(--green); --air: var(--play-grape);
+            /* Animal pill fills that carry small white text (>= 4.5:1), kept distinct from neighbours */
+            --green-deep: color-mix(in srgb, var(--green-soft) 60%, var(--ink));
+            --red-deep:   color-mix(in srgb, var(--red-soft) 60%, var(--ink));
+            --berry-deep: color-mix(in srgb, var(--play-berry) 85%, var(--ink));
         }
 
         /* ============================================================
@@ -72,9 +78,8 @@
         /* edulab branded top menu (shared across edulab apps) */
         .edu-header {
             position: sticky; top: 0; z-index: 50; width: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--line);
+            background: var(--paper);
+            border-bottom: 1px solid var(--line-2);
         }
         .edu-header-inner {
             max-width: 1100px; margin: 0 auto;
@@ -85,7 +90,7 @@
         /* page content gets its own padding now that body sits flush under the bar */
         .edu-page { width: 100%; max-width: 1100px; padding: 44px 24px 72px; }
         @media (min-width: 768px) { .edu-page { padding: 64px 30px 88px; } }
-        .edu-hero { margin-bottom: 3rem; }
+        .edu-hero { margin-bottom: 2.5rem; padding-bottom: 36px; text-align: left; border-bottom: 1px solid var(--line-2); }
         h1, h2, h3 { letter-spacing: -0.01em; }
         @media (min-width: 768px) { body { padding: 0; } }
 
@@ -190,22 +195,22 @@
         .bg-slate-200{ background-color: var(--paper-3); }
         .bg-slate-900{ background-color: var(--ink); }
         .bg-sky-50   { background-color: var(--paper-2); }
-        .bg-sky-500  { background-color: var(--blue); }
+        .bg-sky-500  { background-color: var(--blue-soft); }
         /* animal palette – mapped to the edulab play/brand palette (kept distinguishable) */
         .bg-blue-600    { background-color: var(--blue-600); }
         .bg-slate-600   { background-color: var(--ink-2); }
         .bg-orange-400  { background-color: var(--yellow); }
         .bg-slate-500   { background-color: var(--ink-3); }
         .bg-amber-600   { background-color: var(--yellow-600); }
-        .bg-yellow-700  { background-color: var(--play-berry); }
+        .bg-yellow-700  { background-color: var(--berry-deep); }
         .bg-neutral-400 { background-color: var(--line-2); }
-        .bg-green-600   { background-color: var(--green); }
-        .bg-teal-500    { background-color: var(--green-600); }
+        .bg-green-600   { background-color: var(--green-soft); }
+        .bg-teal-500    { background-color: var(--green-deep); }
         .bg-amber-800   { background-color: var(--ink); }
         .bg-stone-400   { background-color: var(--paper-3); }
         .bg-red-500     { background-color: var(--play-grape); }
-        .bg-red-400     { background-color: var(--red-600); }
-        .bg-orange-500  { background-color: var(--red); }
+        .bg-red-400     { background-color: var(--red-deep); }
+        .bg-orange-500  { background-color: var(--red-soft); }
         .bg-stone-500   { background-color: var(--blue-600); }
         .bg-gray-300    { background-color: var(--line-2); }
         .bg-purple-800  { background-color: var(--play-grape-600); }
@@ -231,7 +236,7 @@
         .text-sky-700  { color: var(--ink); }
         .text-sky-600  { color: var(--ink); }
         .text-amber-800{ color: var(--yellow-ink); }
-        .text-emerald-700 { color: var(--green); }
+        .text-emerald-700 { color: var(--green-600); }
 
         /* ============================================================
            TYPOGRAPHY
@@ -299,7 +304,7 @@
         .hover-bg-sky-600:hover   { background-color: var(--blue); }
         .hover-text-slate-600:hover { color: var(--ink-2); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-        button:focus    { outline: none; box-shadow: var(--focus-ring); outline-offset: 2px; }
+        button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid transparent; box-shadow: var(--focus-ring); outline-offset: 2px; }
         .accent-sky { accent-color: var(--yellow); }
 
         /* ============================================================
@@ -330,9 +335,6 @@
         .animal-card.neighbor   { outline: 3px dashed var(--blue); outline-offset: 2px; z-index: 800; }
 
         .medium-btn { cursor: pointer; transition: background-color .15s; }
-        .medium-btn.active-water { background-color: var(--water); color: var(--blue-ink); }
-        .medium-btn.active-land  { background-color: var(--land); color: var(--green-ink); }
-        .medium-btn.active-air   { background-color: var(--air); color: var(--blue-ink); }
 
         .canvas-bg {
             background-image:
@@ -385,11 +387,17 @@
 
         /* Sortable table headers */
         .th-sort { cursor: pointer; user-select: none; padding: .55rem .6rem; font-weight: 600; white-space: nowrap; }
-        .th-sort:hover { color: var(--blue); }
+        .th-sort:hover { color: var(--blue-600); }
         .th-sort .sort-ind { opacity: 0; margin-left: 2px; font-size: .7em; }
-        .th-sort.active    { color: var(--blue); }
+        .th-sort.active    { color: var(--blue-600); }
         .th-sort.active .sort-ind { opacity: 1; }
-        #embeddings-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+        #embeddings-table thead th { position: sticky; top: 0; background: var(--paper-3); z-index: 1;
+            font-family: var(--font-mono); font-weight: 500; letter-spacing: .08em; color: var(--ink); border-bottom: 1px solid var(--line-2); }
+        #embeddings-table tbody tr:nth-child(even) td { background: var(--paper-2); }
+        #embeddings-table tbody tr:hover td { background: var(--paper-3); }
+        #embeddings-table tbody tr.bg-sky-50 td { background: var(--yellow-soft); color: var(--yellow-ink); }
+        #embeddings-table tbody td:first-child, #embeddings-table tbody td:first-child .font-medium { color: var(--ink); font-weight: 600; }
+        #embeddings-scroll { border: 1px solid var(--line-2); border-radius: var(--r-md); }
 
         /* Custom scrollbar */
         #embeddings-scroll::-webkit-scrollbar       { width: 8px; }
@@ -440,18 +448,36 @@
         }
         .app-title {
             font-family: var(--font-display);
-            font-size: clamp(2rem, 4.5vw, 2.85rem);
+            font-size: clamp(2.3rem, 5vw, 3.3rem);
             font-weight: 800;
             letter-spacing: -.025em;
             line-height: 1.05;
             color: var(--ink);
+            margin-bottom: 14px;
         }
-        .edu-lead { font-size: 1.0625rem; line-height: 1.6; color: var(--ink-2); margin: 0; }
+        .edu-lead { font-size: 1.15rem; line-height: 1.6; color: var(--ink-2); margin: 0; }
         /* Section headings: solid ink display type, no accent bar */
         .sec-title { color: var(--ink); font-family: var(--font-display); font-weight: 600; letter-spacing: -.015em; }
 
-        /* Cards: hairline border + layered shadow + softer radius */
-        .bg-white.rounded-xl { border: 1px solid var(--line); border-radius: 1.5rem; }
+        /* Cards: --line-2 contour + layered shadow + softer radius */
+        .bg-white.rounded-xl { border: 1px solid var(--line-2); border-radius: 1.5rem; }
+        /* Card anatomy: stone head strip (title + controls/meta) over a white body */
+        .edu-card > .card-head {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem;
+            padding: .85rem 1rem; margin: 0; background: var(--paper-2); border-bottom: 1px solid var(--line);
+            border-radius: calc(1.5rem - 1px) calc(1.5rem - 1px) 0 0;
+        }
+        .edu-card > .card-head h2 { margin: 0; }
+        .edu-card > .card-body { padding: 1rem; }
+        .edu-card > .card-body.canvas-body { padding: 1.6rem 1.4rem; }
+        @media (min-width: 640px) { .edu-card > .card-body.canvas-body { padding: 1.6rem; } }
+        @media (min-width: 640px) {
+            .edu-card > .card-head { padding: .9rem 1.5rem; }
+            .edu-card > .card-body { padding: 1.5rem; }
+        }
+        /* Functional field labels: mono, uppercase, tracked */
+        .field-label { display: block; font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+            letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
         .shadow-lg { box-shadow: var(--sh-2); }
         .shadow-md { box-shadow: var(--sh-1); }
 
@@ -481,13 +507,13 @@
 
         .btn-primary { color: var(--on-primary); background: var(--yellow); box-shadow: var(--shadow-primary); }
         .btn-primary:not(:disabled):hover { background: var(--yellow-600); }
-        .btn-success { color: var(--green-ink); background: var(--green); box-shadow: var(--shadow-sm); }
+        .btn-success { color: var(--green-ink); background: var(--green-soft); box-shadow: var(--shadow-sm); }
         .btn-success:not(:disabled):hover { background: var(--green-600); }
-        .btn-secondary { color: var(--ink); background: var(--paper-2); border-color: transparent; box-shadow: none; }
-        .btn-secondary:not(:disabled):hover { background: var(--paper-3); }
-        .btn-danger { color: var(--red-ink); background: var(--red); box-shadow: var(--shadow-sm); }
+        .btn-secondary { color: var(--ink); background: var(--surface); border-color: var(--line-strong); box-shadow: none; }
+        .btn-secondary:not(:disabled):hover { background: var(--paper-2); }
+        .btn-danger { color: var(--red-ink); background: var(--red-soft); box-shadow: var(--shadow-sm); }
         .btn-danger:not(:disabled):hover { background: var(--red-600); }
-        .btn-toggle-on { color: var(--blue-ink); background: var(--blue); border-color: transparent; box-shadow: var(--shadow-sm); }
+        .btn-toggle-on { color: var(--blue-ink); background: var(--blue-soft); border-color: var(--blue-soft); box-shadow: var(--shadow-sm); }
 
         /* Status as a pill that only shows when there's a message */
         #status-message:not(:empty) {
@@ -515,14 +541,14 @@
         .medium-btn {
             display: flex; flex-direction: column; align-items: center; gap: .25rem;
             min-height: 50px; padding: .5rem .25rem; border-radius: var(--r-md);
-            border: none; background: var(--paper-2); color: var(--ink-2);
+            border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
             font-size: .75rem; font-weight: 600;
         }
         .medium-btn .icon { width: 20px; height: 20px; }
-        .medium-btn:hover { background: var(--paper-3); }
-        .medium-btn.active-water { background: var(--water); color: var(--blue-ink); }
-        .medium-btn.active-land  { background: var(--land); color: var(--green-ink); }
-        .medium-btn.active-air   { background: var(--air); color: var(--blue-ink); }
+        .medium-btn:hover { background: var(--paper-2); }
+        .medium-btn.active-water { background: var(--blue-soft); border-color: var(--blue-soft); color: var(--blue-ink); }
+        .medium-btn.active-land  { background: var(--green-soft); border-color: var(--green-soft); color: var(--green-ink); }
+        .medium-btn.active-air   { background: var(--air); border-color: var(--air); color: var(--blue-ink); }
 
         /* ── Habitat slider: water→land→air gradient track ───────── */
         #z-slider {
@@ -544,8 +570,8 @@
         /* ── Inspector close as a round ghost button ─────────────── */
         #inspector-close {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 34px; height: 34px; border-radius: 999px;
-            background: transparent; color:var(--ink-3); cursor: pointer;
+            width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line-strong);
+            background: var(--surface); color:var(--ink); cursor: pointer;
             transition: background .15s, color .15s;
         }
         #inspector-close:hover { background:var(--paper-2); color:var(--ink-2); }
@@ -572,7 +598,7 @@
         .scene-hint { font-size: .72rem; }
 
         /* ── Table polish ────────────────────────────────────────── */
-        #embeddings-table thead th { font-size: .72rem; }
+        #embeddings-table thead th { font-size: 12px; }
         .font-mono, #inspector-vector, #embeddings-table td { font-variant-numeric: tabular-nums; }
 
         /* ── "Real embedding" fingerprint widget ─────────────────── */
@@ -581,10 +607,10 @@
         .fp-head { width: 7.5rem; flex: none; }
         .fp-select {
             width: 100%; font-size: .85rem; font-weight: 600; color: var(--ink-soft);
-            padding: .4rem .5rem; border-radius: .55rem; border: 1px solid var(--line);
+            padding: .4rem .5rem; border-radius: .55rem; border: 1px solid var(--line-strong);
             background: var(--surface); cursor: pointer;
         }
-        .fp-select:hover { border-color: var(--line-2); }
+        .fp-select:hover { border-color: var(--ink-2); }
         .fp-strip {
             flex: 1 1 auto; width: 100%; height: 34px; border-radius: .5rem;
             border: 1px solid var(--line); cursor: crosshair; display: block;
@@ -605,9 +631,9 @@
             transition: width .35s ease;
         }
         .fp-sim-verdict { margin-top: .4rem; font-size: .9rem; font-weight: 650; color: var(--ink); }
-        .fp-sim-verdict.is-near { color: var(--green); }
+        .fp-sim-verdict.is-near { color: var(--green-600); }
         .fp-sim-verdict.is-mid  { color: var(--ink-2); }
-        .fp-sim-verdict.is-far  { color: var(--red); }
+        .fp-sim-verdict.is-far  { color: var(--red-600); }
         .fp-callouts { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
         .fp-chip {
             display: inline-flex; align-items: center; gap: .35rem;
@@ -623,12 +649,12 @@
         .tick-fade { animation: eduFadeIn .7s ease both; }
 
         /* ── Shelf counter ───────────────────────────────────────── */
-        .shelf-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; }
+        .shelf-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
         .shelf-head h2 { margin-bottom: 0; }
         .shelf-count {
             font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .08em;
             text-transform: uppercase; padding: 4px 10px; border-radius: var(--r-pill);
-            background: var(--paper-2); color: var(--ink-2); white-space: nowrap;
+            background: var(--paper-3); color: var(--ink); white-space: nowrap;
         }
         .shelf-count.is-done { background: var(--green-soft); color: var(--green-ink); }
 
@@ -700,7 +726,7 @@
     </header>
 
     <div class="edu-page">
-        <header class="edu-hero text-center">
+        <header class="edu-hero">
             <h1 class="app-title">Animal embeddings playground</h1>
             <p class="edu-lead mt-3">
                 Position each animal by size &amp; environment, tap it to set its habitat (water/land/air),
@@ -712,14 +738,15 @@
             <!-- Left column: canvas + semantic search + inspector -->
             <div class="lg-w-2-3 flex flex-col gap-6 md-gap-8">
             <!-- Canvas section -->
-            <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg relative">
-                <div class="flex items-center justify-between mb-4">
+            <section class="bg-white rounded-xl shadow-lg relative edu-card">
+                <div class="card-head">
                     <h2 class="text-xl font-semibold text-sky-600 sec-title">Canvas</h2>
                     <button id="view-3d-btn" class="btn btn-secondary btn-sm" disabled>
                         <svg class="icon"><use href="#i-cube"></use></svg>
                         <span class="lbl">View in 3-D</span>
                     </button>
                 </div>
+                <div class="card-body canvas-body relative">
                 <div id="axis-label-y-top"    class="absolute text-xs text-slate-500 font-medium" style="top:4px;left:50%;transform:translateX(-50%);z-index:5;">Size: Large</div>
                 <div id="axis-label-y-bottom" class="absolute text-xs text-slate-500 font-medium" style="bottom:4px;left:50%;transform:translateX(-50%);z-index:5;">Size: Small</div>
                 <div id="axis-label-x-left"   class="absolute" style="left:4px;top:50%;transform:translateY(-50%);z-index:5;">
@@ -742,21 +769,23 @@
                     </div>
                     <div class="scene-hint absolute text-slate-400 pointer-events-none" style="bottom:.5rem;right:.75rem;">drag to rotate · scroll to zoom</div>
                 </div>
+                </div>
             </section>
 
             <!-- Inspector -->
-            <section id="inspector" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
-                <div class="flex items-center justify-between mb-1">
+            <section id="inspector" class="bg-white rounded-xl shadow-lg hidden edu-card">
+                <div class="card-head">
                     <h2 class="text-xl font-semibold text-sky-600 sec-title">Inspector</h2>
                     <button id="inspector-close" aria-label="Close inspector">
                         <svg class="icon"><use href="#i-close"></use></svg>
                     </button>
                 </div>
+                <div class="card-body">
                 <div id="inspector-name"   class="font-semibold text-slate-800"></div>
                 <div id="inspector-vector" class="font-mono text-xs text-slate-500 mb-3"></div>
 
                 <div id="habitat-controls">
-                    <label class="text-xs font-medium text-slate-500">Habitat (3rd dimension)</label>
+                    <label class="field-label">Habitat (3rd dimension)</label>
                     <div id="medium-control" class="flex gap-1_5" style="margin:.375rem 0;">
                         <button data-medium="water" class="medium-btn flex-1">
                             <svg class="icon"><use href="#i-water"></use></svg>Water
@@ -777,8 +806,9 @@
                 </div>
 
                 <div id="neighbors-panel" class="hidden" style="margin-top:1rem;">
-                    <div id="neighbors-title" class="text-xs font-medium text-slate-500 mb-1">Nearest neighbors (3-D)</div>
+                    <div id="neighbors-title" class="field-label mb-1">Nearest neighbors (3-D)</div>
                     <ol id="neighbors-list" class="text-sm space-y-1"></ol>
+                </div>
                 </div>
             </section>
             </div>
@@ -786,25 +816,30 @@
             <!-- Sidebar -->
             <aside class="lg-w-1-3 flex flex-col gap-6 md-gap-8">
                 <!-- New Animals shelf -->
-                <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg">
-                    <div class="shelf-head">
+                <section class="bg-white rounded-xl shadow-lg edu-card">
+                    <div class="shelf-head card-head">
                         <h2 class="text-xl font-semibold text-sky-600 sec-title">New Animals</h2>
                         <span id="shelf-count" class="shelf-count" aria-live="polite">0 / 6 placed</span>
                     </div>
+                    <div class="card-body">
                     <div id="new-animals-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
                     <p class="text-xs text-slate-500 mt-2 text-center">Drag these onto the canvas.</p>
+                    </div>
                 </section>
 
                 <!-- Semantic search (revealed after generate) -->
-                <section id="query-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
-                    <h2 class="text-xl font-semibold mb-2 text-sky-600 sec-title">Semantic search</h2>
+                <section id="query-section" class="bg-white rounded-xl shadow-lg hidden edu-card">
+                    <div class="card-head"><h2 class="text-xl font-semibold text-sky-600 sec-title">Semantic search</h2></div>
+                    <div class="card-body">
                     <p class="text-xs text-slate-500 mb-3">Drag the query marker onto the canvas. Its nearest neighbors are your search results – this is how AI retrieval works.</p>
                     <div id="query-shelf" class="flex flex-wrap items-center gap-3 justify-center min-h-80px p-2 border border-dashed border-slate-300 rounded-md"></div>
+                    </div>
                 </section>
 
                 <!-- Actions -->
-                <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-semibold mb-3 text-sky-600 sec-title">Actions</h2>
+                <section class="bg-white rounded-xl shadow-lg edu-card">
+                    <div class="card-head"><h2 class="text-xl font-semibold text-sky-600 sec-title">Actions</h2></div>
+                    <div class="card-body">
                     <div id="resume-banner" class="resume-banner edu-block hidden" role="status">
                         <strong>Saved session found</strong> <span id="resume-when"></span> – your placements were kept.
                         <div class="resume-actions">
@@ -828,17 +863,19 @@
                         <span class="lbl">Reset</span>
                     </button>
                     <p id="status-message" class="text-xs text-slate-500 mt-2 text-center" role="status" aria-live="polite"></p>
+                    </div>
                 </section>
             </aside>
         </main>
 
         <footer class="mt-6 md-mt-8 w-full flex flex-col gap-6 md-gap-8">
             <!-- Generated embeddings table -->
-            <section class="bg-white p-4 sm-p-6 rounded-xl shadow-lg">
-                <div class="flex flex-col sm-flex-row justify-between items-start sm-items-baseline mb-1">
-                    <h2 class="text-xl font-semibold text-sky-600 mb-1 sm-mb-0 sec-title">Generated embeddings</h2>
-                    <span id="embeddings-meta" class="text-xs text-slate-400"></span>
+            <section class="bg-white rounded-xl shadow-lg edu-card">
+                <div class="card-head">
+                    <h2 class="text-xl font-semibold text-sky-600 sec-title">Generated embeddings</h2>
+                    <span id="embeddings-meta" class="text-xs text-slate-500"></span>
                 </div>
+                <div class="card-body">
                 <p id="embeddings-desc" class="text-sm text-slate-600 mb-3">
                     Each animal is a 3-D vector <span class="font-mono">[x, y, z]</span> – x&nbsp;=&nbsp;environment, y&nbsp;=&nbsp;size, z&nbsp;=&nbsp;habitat.
                     Click a column to sort, or a row to inspect on the canvas.
@@ -865,11 +902,13 @@
                         <tbody id="embeddings-body"></tbody>
                     </table>
                 </div>
+                </div>
             </section>
 
             <!-- Interactive "real embedding" widget (revealed after generate) -->
-            <section id="bridge-panel" class="hidden bg-white p-4 sm-p-6 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold text-sky-600 mb-1 sec-title">What a real embedding looks like</h2>
+            <section id="bridge-panel" class="hidden bg-white rounded-xl shadow-lg edu-card">
+                <div class="card-head"><h2 class="text-xl font-semibold text-sky-600 sec-title">What a real embedding looks like</h2></div>
+                <div class="card-body">
                 <p class="text-sm text-slate-600 mb-3">
                     You gave each animal <strong>3</strong> numbers. A real model gives it a long list – here are <strong>48</strong>.
                     Pick two animals and compare their <em>fingerprints</em>: similar meaning makes a similar pattern.
@@ -907,11 +946,13 @@
                     A real model learns these numbers from data – nobody labels them. The 3-D
                     <strong>"View model positions"</strong> view is just this long fingerprint squashed down to 3 numbers so it can be plotted.
                 </p>
+                </div>
             </section>
 
             <!-- Discussion prompts (revealed after generate) -->
-            <section id="prompts-section" class="bg-white p-4 sm-p-6 rounded-xl shadow-lg hidden">
-                <h2 class="text-xl font-semibold text-sky-600 mb-3 sec-title">Think about it</h2>
+            <section id="prompts-section" class="bg-white rounded-xl shadow-lg hidden edu-card">
+                <div class="card-head"><h2 class="text-xl font-semibold text-sky-600 sec-title">Think about it</h2></div>
+                <div class="card-body">
                 <ol class="prompts-list text-sm text-slate-700 space-y-2">
                     <li>Why are Cat and Dog nearest neighbors? What property makes them close in this space?</li>
                     <li>What extra dimension would better separate Shark from Goldfish than "size" alone?</li>
@@ -919,6 +960,7 @@
                     <li>Chicken landed in the "air" group (z&nbsp;≈&nbsp;68). Is that right? Who decided – you or the model?</li>
                     <li>Penguin swims and walks but can't fly; Duck uses water and air. Did three dimensions feel like enough?</li>
                 </ol>
+                </div>
             </section>
         </footer>
     </div>
