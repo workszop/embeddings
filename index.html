@@ -91,8 +91,11 @@
         .edu-page { width: 100%; max-width: 1100px; padding: 28px 24px 72px; }
         @media (min-width: 768px) { .edu-page { padding: 36px 30px 88px; } }
         .edu-app-title { margin: 0 0 0 14px; padding-left: 14px; border-left: 1px solid var(--line-2, #d9d3c7);
-          font-family: var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: -.01em; line-height: 1.2;
+          font-family: var(--font-display); font-weight: 600; font-size: 38px; letter-spacing: -.02em; line-height: 1.1;
           color: var(--ink-2, #4a4540); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+        /* bigger app title (38px) where the bar has room; step down where it would truncate */
+        @media (max-width: 763px) { .edu-app-title { font-size: 30px; } }
+        @media (max-width: 653px) { .edu-app-title { font-size: 24px; } }
         @media (max-width: 640px) { .edu-app-title { font-size: 15px; margin-left: 10px; padding-left: 10px; } }
         .edu-hero { margin-bottom: 2.5rem; padding-bottom: 36px; text-align: left; border-bottom: 1px solid var(--line-2); }
         h1, h2, h3 { letter-spacing: -0.01em; }
